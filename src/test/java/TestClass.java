@@ -395,4 +395,54 @@ public class TestClass {
         System.out.println(board.getNextPlayer());
         assert (board.getNextPlayer() == Player.MACHINE);
     }
+
+    @Test
+    public void newMoveTest() {
+        BoardImpl whiteBoard = new BoardImpl(2,Color.WHITE);
+
+        BoardImpl test1 = (BoardImpl) whiteBoard.move(1,1,1,3);
+        assert (test1 != null);
+
+        test1.nextPlayer = Player.HUMAN;
+        BoardImpl test2 = (BoardImpl) test1.move(1,3,2,3);
+        assert (test2 == null);
+
+        test1.nextPlayer = Player.HUMAN;
+        BoardImpl test3 = (BoardImpl) test1.move(1,3,2,4);
+        assert (test3 == null);
+
+        int i = 0;
+        System.err.println("whitepawns");
+        for (Pawn whitePawn : test1.whitePawns) {
+            i++;
+            System.out.print("Pawn " + i);
+            System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
+        }
+
+        assert (test1.getPawn(1,3, Color.WHITE) != null);
+        test1.nextPlayer = Player.HUMAN;
+        test1.blackPawns.add(new Pawn(2,4));
+        BoardImpl test4 = (BoardImpl) test1.move(1,3,2,4);
+        assert (test4 != null);
+
+        // For black Pawns
+        BoardImpl blackBoard = new BoardImpl(2,Color.BLACK);
+
+        blackBoard.nextPlayer = Player.HUMAN;
+        BoardImpl test5 = (BoardImpl) blackBoard.move(1,1,1,3);
+        assert (test5 != null);
+
+        test5.nextPlayer = Player.HUMAN;
+        BoardImpl test6 = (BoardImpl) test5.move(1,3,2,3);
+        assert (test6 == null);
+
+        test5.nextPlayer = Player.HUMAN;
+        BoardImpl test7 = (BoardImpl) test5.move(1,3,2,4);
+        assert (test7 == null);
+
+        test5.nextPlayer = Player.HUMAN;
+        test5.whitePawns.add(new Pawn(2,4));
+        BoardImpl test8 = (BoardImpl) test5.move(1,3,2,4);
+        assert (test8 != null);
+    }
 }
