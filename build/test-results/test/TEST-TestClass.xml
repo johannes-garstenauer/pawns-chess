@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2020-12-26T11:31:42" hostname="LAPTOP-GS97P0F9" time="73.431">
+  <properties/>
+  <testcase name="getNextPlayerTest" classname="TestClass" time="73.431"/>
+  <system-out><![CDATA[Pawn 1 Row: 1 Col: 1
+Pawn 2 Row: 1 Col: 2
+Pawn 3 Row: 1 Col: 3
+Pawn 4 Row: 1 Col: 4
+Pawn 5 Row: 1 Col: 5
+Pawn 6 Row: 1 Col: 6
+Pawn 7 Row: 1 Col: 7
+Pawn 8 Row: 1 Col: 8
+Pawn 1 Row: 8 Col: 1
+Pawn 2 Row: 8 Col: 2
+Pawn 3 Row: 8 Col: 3
+Pawn 4 Row: 8 Col: 4
+Pawn 5 Row: 8 Col: 5
+Pawn 6 Row: 8 Col: 6
+Pawn 7 Row: 8 Col: 7
+Pawn 8 Row: 8 Col: 8
+MACHINE
+]]></system-out>
+  <system-err><![CDATA[whitepawns
+blackpawns
+]]></system-err>
+</testsuite>
