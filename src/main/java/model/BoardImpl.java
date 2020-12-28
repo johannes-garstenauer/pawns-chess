@@ -14,6 +14,8 @@ public class BoardImpl implements Board, Cloneable {
     public List<Pawn> whitePawns = new ArrayList<>();
     public List<Pawn> blackPawns = new ArrayList<>();
 
+    //public LookAheadTree lookAheadTree;
+
     //TODO wieso hier kein throws Illegalarg nötig?
     public BoardImpl(int level, Color humanColor) {
 
@@ -41,6 +43,9 @@ public class BoardImpl implements Board, Cloneable {
         }
 
         createInitialPawnPositions();
+
+        //this.lookAheadTree = new LookAheadTree(this);
+        //lookAheadTree.getRoot().constructTree(level);
     }
 
     @Override
@@ -82,8 +87,24 @@ public class BoardImpl implements Board, Cloneable {
         return nextPlayer;
     }
 
+    public void makeMove(Pawn pawn, Tupel tupel, int colTo, int rowTo) {
+        if (tupel.getAttackedPawn() != null) {
+            if (getWhitePawns().contains(tupel.getAttackedPawn())) {
+                getWhitePawns().remove(tupel);
+            } else if (getBlackPawns().contains(tupel.getAttackedPawn())) {
+                getBlackPawns().remove(tupel);
+            } else {
+                throw new IllegalArgumentException("There was no pawn to be "
+                        + "attacked found.");
+            }
+            pawn.setColumn(colTo);
+            pawn.setRow(rowTo);
+            pawn.hasMoved();
+        }
+    }
+
     /**
-     * Also removes pawn that is successfully attacked (for convenience)
+     * Returns pawn to be attacked and if it is a legal move
      *
      * @param move
      * @param pawn
@@ -91,7 +112,7 @@ public class BoardImpl implements Board, Cloneable {
      * @param rowTo
      * @return
      */
-    private boolean isLegalMove(Move move, Pawn pawn, int colTo,
+    public Tupel isLegalMove(Move move, Pawn pawn, int colTo,
                                 int rowTo) {
 
         //TODO diese Code duplizierung auslagern.
@@ -119,19 +140,21 @@ public class BoardImpl implements Board, Cloneable {
             for (Pawn friendlyPawn : friendlyPawns) {
                 if (colTo == friendlyPawn.getColumn()
                         && rowTo == friendlyPawn.getRow()) {
-                    return false;
+                    return new Tupel(false, null);
                 }
             }
             // Determine whether a hostile pawn blocks this move.
             for (Pawn hostilePawn : hostilePawns) {
                 if (colTo == hostilePawn.getColumn()
                         && rowTo == hostilePawn.getRow()) {
-                    return false;
+                    return new Tupel(false, null);
                 }
             }
 
             // Determine whether this pawn can make a double move.
-            return move != Move.DOUBLEFORWARD || pawn.isOpeningMove();
+            if (move != Move.DOUBLEFORWARD || pawn.isOpeningMove()) {
+                return new Tupel(true, null);
+            }
 
         } else if (move == Move.DIAGONALLEFT || move == Move.DIAGONALRIGT) {
 
@@ -143,12 +166,15 @@ public class BoardImpl implements Board, Cloneable {
             for (Pawn hostilePawn : hostilePawns) {
                 if (colTo == hostilePawn.getColumn()
                         && rowTo == hostilePawn.getRow()) {
-                    hostilePawns.remove(hostilePawn);
-                    return true;
+
+                    //TODO remove if it works
+                    //hostilePawns.remove(hostilePawn);
+
+                    return new Tupel(true, hostilePawn);
                 }
             }
         }
-        return false;
+        return new Tupel(false, null);
     }
 
     @Override
@@ -178,114 +204,23 @@ public class BoardImpl implements Board, Cloneable {
         Pawn pawnToBeMoved = newBoard.getPawn(colFrom, rowFrom,
                 getHumanColor());
 
-        if (isLegalMove(move, pawnToBeMoved, colTo, rowTo) && pawnToBeMoved != null) {
+        Tupel temp = isLegalMove(move, pawnToBeMoved, colTo, rowTo);
 
-            pawnToBeMoved.setColumn(colTo);
-            pawnToBeMoved.setRow(rowTo);
-
+        if (temp.isLegalMove() && pawnToBeMoved != null) {
+            makeMove(pawnToBeMoved, temp, colTo, rowTo);
             newBoard.nextPlayer = machine;
-            pawnToBeMoved.hasMoved();
+
+            /*
+            // Construct new LookAheadTree
+            newBoard.lookAheadTree.getRoot().constructTree(machine.getLevel());
+             */
+
             return newBoard;
         } else {
-
             //TODO: oder IllegalMoveExc?
             return null;
         }
 
-        /*
-        // List of humans pawns.
-        List<Pawn> friendlyPawns;
-
-        // List of machines pawns.
-        List<Pawn> hostilePawns;
-
-        if (getHumanColor() == Color.WHITE) {
-            friendlyPawns = newBoard.whitePawns;
-            hostilePawns = newBoard.blackPawns;
-        } else {
-            friendlyPawns = newBoard.blackPawns;
-            hostilePawns = newBoard.whitePawns;
-        }
-
-        // Determine whether there is a pawn to be moved at the specified
-        // position.
-        Pawn pawnToBeMoved = null;
-        for (Pawn pawn : friendlyPawns) {
-            if (colFrom == pawn.getColumn() && rowFrom == pawn.getRow()) {
-                pawnToBeMoved = pawn;
-                break;
-            }
-        }
-
-        if (pawnToBeMoved == null) {
-            System.out.println("no pawn");
-            return null;
-        }
-
-        // Assign move and determine whether it is a legal move.
-        Move move;
-        try {
-            move = determineMove(colFrom, rowFrom, colTo, rowTo);
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-
-         */
-        /*
-
-        if (move == Move.FORWARD || move == Move.DOUBLEFORWARD) {
-
-            // Determine whether a friendly pawn blocks this move.
-            for (Pawn friendlyPawn : friendlyPawns) {
-                if (colTo == friendlyPawn.getColumn()
-                        && rowTo == friendlyPawn.getRow()) {
-                    System.out.println("fr");
-                    return null;
-                }
-            }
-            // Determine whether a hostile pawn blocks this move.
-            for (Pawn hostilePawn : hostilePawns) {
-                if (colTo == hostilePawn.getColumn()
-                        && rowTo == hostilePawn.getRow()) {
-                    System.out.println("hos");
-                    return null;
-                }
-            }
-
-            // Determine whether this pawn can make a double move.
-            if (move == Move.DOUBLEFORWARD && !pawnToBeMoved.isOpeningMove()) {
-                System.out.println("double");
-                return null;
-            }
-
-            pawnToBeMoved.setColumn(colTo);
-            pawnToBeMoved.setRow(rowTo);
-
-        } else if (move == Move.DIAGONALLEFT
-                || move == Move.DIAGONALRIGT) {
-            boolean hostilePawnToBeAttackedFound = false;
-
-            //TODO: what about friendly block?
-            //TODO: consolidate for loops -> all in one with variables being
-            // assigned
-            // Determine whether a hostile pawn can be attacked.
-            for (Pawn hostilePawn : hostilePawns) {
-                if (colTo == hostilePawn.getColumn()
-                        && rowTo == hostilePawn.getRow()) {
-                    hostilePawnToBeAttackedFound = true;
-                    hostilePawns.remove(hostilePawn);
-
-                    pawnToBeMoved.setRow(rowTo);
-                    pawnToBeMoved.setColumn(colTo);
-                    break;
-                }
-            }
-            if (!hostilePawnToBeAttackedFound) {
-                return null;
-            }
-        }
-
-        */
     }
 
 
@@ -323,13 +258,18 @@ public class BoardImpl implements Board, Cloneable {
 
     @Override
     public Board machineMove() {
-/*
-        for (Move move: Move.values()) {
-            if (isLegalMove())
+        if(nextPlayer != machine) {
+            //TODO oder throw new nicht dran exception (illegalmove)
+            return null;
         }
+        //Board on which the move is executed.
+        BoardImpl newBoard = (BoardImpl) this.clone();
 
- */
-        
+        LookAheadTree lookAheadTree = new LookAheadTree(this);
+
+        // Construct new LookAheadTree
+        lookAheadTree.getRoot().constructTree(machine.getLevel());
+
         nextPlayer = human;
         return null;
     }
@@ -718,10 +658,19 @@ public class BoardImpl implements Board, Cloneable {
 
         copy.whitePawns = whitePawnsClone;
         copy.blackPawns = blackPawnsClone;
+        //copy.lookAheadTree = lookAheadTree.clone();
 
         // Clone of enums human and machine not required or legal due to
         // singleton quality of enums.
 
         return copy;
+    }
+
+    public List<Pawn> getWhitePawns() {
+        return whitePawns;
+    }
+
+    public List<Pawn> getBlackPawns() {
+        return blackPawns;
     }
 }

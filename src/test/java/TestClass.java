@@ -1,12 +1,9 @@
 import model.*;
 import org.junit.Test;
 
-import javax.swing.plaf.synth.SynthOptionPaneUI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-
-//TODO: diese Klasse mit abgeben?
-
 
 public class TestClass {
 
@@ -444,5 +441,46 @@ public class TestClass {
         test5.whitePawns.add(new Pawn(2,4));
         BoardImpl test8 = (BoardImpl) test5.move(1,3,2,4);
         assert (test8 != null);
+    }
+
+    @Test
+    public void createChildrenTest() {
+
+        Node node1 = new Node(new BoardImpl(2,Color.BLACK),null);
+        node1.createChildren(Player.MACHINE);
+
+        System.out.println(node1.children.size());
+        int a = 0;
+        for (Node child : node1.children) {
+            System.out.println();
+            System.out.println("Child: "+ ++a);
+
+            int i = 0;
+            System.err.println("whitepawns");
+            for (Pawn whitePawn : child.board.whitePawns) {
+                i++;
+                System.out.print("Pawn " + i);
+                System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
+            }
+            int k = 0;
+            System.err.println("blackPawns");
+            for (Pawn blackPawn : child.board.blackPawns) {
+                k++;
+                System.out.print("Pawn " + k);
+                System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
+            }
+        }
+
+        Node node2 = new Node(new BoardImpl(2,Color.WHITE),null);
+        node2.createChildren(Player.HUMAN);
+    }
+
+    @Test
+    public void cloneTreeTest() {
+        BoardImpl board = new BoardImpl(3,Color.WHITE);
+
+        BoardImpl copy = (BoardImpl) board.clone();
+
+        assert (copy != null);
     }
 }
