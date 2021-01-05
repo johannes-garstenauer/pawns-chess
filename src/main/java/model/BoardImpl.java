@@ -88,19 +88,22 @@ public class BoardImpl implements Board, Cloneable {
     }
 
     public void makeMove(Pawn pawn, Tupel tupel, int colTo, int rowTo) {
+        //TODO: hier übergabe von nur attackedPawn statt tupel
         if (tupel.getAttackedPawn() != null) {
             if (getWhitePawns().contains(tupel.getAttackedPawn())) {
-                getWhitePawns().remove(tupel);
+                getWhitePawns().remove(tupel.getAttackedPawn());
             } else if (getBlackPawns().contains(tupel.getAttackedPawn())) {
-                getBlackPawns().remove(tupel);
+                getBlackPawns().remove(tupel.getAttackedPawn());
             } else {
                 throw new IllegalArgumentException("There was no pawn to be "
                         + "attacked found.");
             }
-            pawn.setColumn(colTo);
-            pawn.setRow(rowTo);
-            pawn.hasMoved();
         }
+
+        pawn.setColumn(colTo);
+        pawn.setRow(rowTo);
+        pawn.hasMoved();
+
     }
 
     /**
@@ -113,17 +116,26 @@ public class BoardImpl implements Board, Cloneable {
      * @return
      */
     public Tupel isLegalMove(Move move, Pawn pawn, int colTo,
-                                int rowTo) {
+                             int rowTo) {
+
+
+        try {
+            if (determineMove(pawn.getColumn(), pawn.getRow(), colTo, rowTo) != move) {
+                return new Tupel(false, null);
+            }
+        } catch (IllegalArgumentException e) {
+            return new Tupel(false, null);
+        }
 
         //TODO diese Code duplizierung auslagern.
 
-        // List of humans pawns.
+        // List of friendly pawns.
         List<Pawn> friendlyPawns;
 
-        // List of machines pawns.
+        // List of hostile pawns.
         List<Pawn> hostilePawns;
 
-        if (getHumanColor() == Color.WHITE) {
+        if (getSlot(pawn.getColumn(), pawn.getRow()) == Color.WHITE) {
             friendlyPawns = whitePawns;
             hostilePawns = blackPawns;
         } else {
@@ -156,7 +168,7 @@ public class BoardImpl implements Board, Cloneable {
                 return new Tupel(true, null);
             }
 
-        } else if (move == Move.DIAGONALLEFT || move == Move.DIAGONALRIGT) {
+        } else if (move == Move.DIAGONALLEFT || move == Move.DIAGONALRIGHT) {
 
             //TODO: consolidate for loops -> all in one with variables being
             // assigned
@@ -166,9 +178,6 @@ public class BoardImpl implements Board, Cloneable {
             for (Pawn hostilePawn : hostilePawns) {
                 if (colTo == hostilePawn.getColumn()
                         && rowTo == hostilePawn.getRow()) {
-
-                    //TODO remove if it works
-                    //hostilePawns.remove(hostilePawn);
 
                     return new Tupel(true, hostilePawn);
                 }
@@ -206,8 +215,8 @@ public class BoardImpl implements Board, Cloneable {
 
         Tupel temp = isLegalMove(move, pawnToBeMoved, colTo, rowTo);
 
-        if (temp.isLegalMove() && pawnToBeMoved != null) {
-            makeMove(pawnToBeMoved, temp, colTo, rowTo);
+        if (temp.getLegalityOfMove() && pawnToBeMoved != null) {
+            newBoard.makeMove(pawnToBeMoved, temp, colTo, rowTo);
             newBoard.nextPlayer = machine;
 
             /*
@@ -224,6 +233,7 @@ public class BoardImpl implements Board, Cloneable {
     }
 
 
+    //TODO: determineMove und isLegalMove kombinieren?
     private Move determineMove(int colFrom, int rowFrom, int colTo,
                                int rowTo) throws IllegalArgumentException {
 
@@ -235,12 +245,27 @@ public class BoardImpl implements Board, Cloneable {
                     + "board!");
         }
 
-
         // Distance moved between columns.
         int colDist = colTo - colFrom;
 
         // Distance moved between rows.
-        int rowDist = Math.abs(rowTo - rowFrom);
+        int rowDist = rowTo - rowFrom;
+
+        // Color of the pawn.
+        Color pawnColor = getSlot(colFrom, rowFrom);
+
+        if (pawnColor == Color.NONE) {
+            throw new IllegalArgumentException("Moves must be executed on "
+                    + "existing Pawns.");
+        } else if (pawnColor == Color.WHITE && !(rowDist > 0)){
+            throw new IllegalArgumentException("This move has an illegal "
+                    + "direction.");
+        } else if (pawnColor == Color.BLACK && !(rowDist < 0)){
+            throw new IllegalArgumentException("This move has an illegal "
+                    + "direction.");
+        }
+
+        rowDist = Math.abs(rowDist);
 
         if (colDist == 0 && rowDist == 1) {
             return Move.FORWARD;
@@ -249,7 +274,7 @@ public class BoardImpl implements Board, Cloneable {
         } else if (colDist == -1 && rowDist == 1) {
             return Move.DIAGONALLEFT;
         } else if (colDist == 1 && rowDist == 1) {
-            return Move.DIAGONALRIGT;
+            return Move.DIAGONALRIGHT;
         } else {
             throw new IllegalArgumentException("This move has an illegal "
                     + "distance or direction.");
@@ -258,7 +283,7 @@ public class BoardImpl implements Board, Cloneable {
 
     @Override
     public Board machineMove() {
-        if(nextPlayer != machine) {
+        if (nextPlayer != machine) {
             //TODO oder throw new nicht dran exception (illegalmove)
             return null;
         }
@@ -591,6 +616,7 @@ public class BoardImpl implements Board, Cloneable {
         }
 
 
+        // Determine whether a player has reached the enemies base row.
         if (amountOfPawnsInRow(1, machinePawns) > 0) {
             return machine;
         } else if (amountOfPawnsInRow(SIZE, humanPawns) > 0) {

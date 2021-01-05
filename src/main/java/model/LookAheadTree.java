@@ -1,6 +1,7 @@
 package model;
 
-public class LookAheadTree implements Cloneable{
+public class LookAheadTree //implements Cloneable
+{
     private Node root;
 
     public LookAheadTree (BoardImpl board) {
@@ -11,6 +12,7 @@ public class LookAheadTree implements Cloneable{
         return root;
     }
 
+    /*
     @Override
     public LookAheadTree clone(){
         LookAheadTree copy;
@@ -24,4 +26,5 @@ public class LookAheadTree implements Cloneable{
         copy.root = root.clone();
         return copy;
     }
+     */
 }

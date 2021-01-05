@@ -1,16 +1,16 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-public class Node implements Cloneable {
+public class Node //implements Cloneable
+         {
     public BoardImpl board;
     public Node parent;
     public List<Node> children = new ArrayList<>();
 
     //TODO
-    int value;
+    double value; //= board.createBoardRating();
 
     public Node(BoardImpl board, Node parent) {
         this.board = board;
@@ -19,7 +19,7 @@ public class Node implements Cloneable {
 
     public void constructTree(int level) {
         if (level > 0) {
-            this.createChildren(this.getPlayer());
+            this.createChildren(getPlayer());
 
             for (Node child : children) {
                 child.constructTree(level - 1);
@@ -31,6 +31,7 @@ public class Node implements Cloneable {
         return board.getNextPlayer();
     }
 
+    /*
     @Override
     public Node clone() {
         Node copy;
@@ -53,11 +54,13 @@ public class Node implements Cloneable {
 
         return copy;
     }
+     */
 
     public void createChildren(Player player) {
 
         //List of pawns out of whose moves the children nodes will be
         // constructed.
+        //TODO: einfach getPlayerPawns methode bauen
         List<Pawn> pawns;
         if (player.getColor() == Color.WHITE) {
             pawns = board.getWhitePawns();
@@ -66,20 +69,33 @@ public class Node implements Cloneable {
         }
 
 
-        //TODO: ecs caused by islegalmove -> does it change white or blackpawns?
-
         // Create child nodes for each possible move by each pawn.
         for (Pawn pawn : pawns) {
             for (Move move : Move.values()) {
+                //Can move at most one column.
                 for (int colTo = pawn.getColumn() - 1; colTo
-                        < pawn.getColumn() + 1; colTo++) {
-                    for (int rowTo = pawn.getRow(); rowTo < pawn.getRow() + 1;
+                        <= pawn.getColumn() + 1; colTo++) {
+                    //Can move at most two rows.
+                    for (int rowTo = pawn.getRow() - 2; rowTo <= pawn.getRow() + 2;
                          rowTo++) {
                         Tupel temp = board.isLegalMove(move, pawn, colTo,
                                 rowTo);
-                        if (temp.isLegalMove()) {
+                        // If the move is legal and an actual movement takes
+                        // place.
+                        if (temp.getLegalityOfMove()
+                                && (colTo != pawn.getColumn()
+                                || rowTo != pawn.getRow())) {
+
+                            System.out.println(move);
+                            System.out.println("Col: " +pawn.getColumn()+" "
+                                    + "ColTo: "+colTo);
+                            System.out.println("Row: " +pawn.getRow() + " "
+                                    + "rowTo: "+rowTo);
+
                             BoardImpl boardClone = (BoardImpl) board.clone();
-                            boardClone.makeMove(pawn, temp, colTo, rowTo);
+                            boardClone.makeMove(boardClone.getPawn(pawn.getColumn(), pawn.getRow(), player.getColor()),
+                                    temp, colTo,
+                                    rowTo);
                             children.add(new Node(boardClone,
                                     this));
                         }

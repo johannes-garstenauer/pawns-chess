@@ -395,92 +395,131 @@ public class TestClass {
 
     @Test
     public void newMoveTest() {
+        //FOR SIZE 4
+
+        /*
         BoardImpl whiteBoard = new BoardImpl(2,Color.WHITE);
 
-        BoardImpl test1 = (BoardImpl) whiteBoard.move(1,1,1,3);
+        BoardImpl test1 = (BoardImpl) whiteBoard.move(1,1,1,2);
         assert (test1 != null);
 
         test1.nextPlayer = Player.HUMAN;
-        BoardImpl test2 = (BoardImpl) test1.move(1,3,2,3);
-        assert (test2 == null);
+        BoardImpl test2 = (BoardImpl) test1.move(2,1,2,3);
+        assert (test2 != null);
 
-        test1.nextPlayer = Player.HUMAN;
-        BoardImpl test3 = (BoardImpl) test1.move(1,3,2,4);
+        test2.nextPlayer = Player.HUMAN;
+        BoardImpl test3 = (BoardImpl) test2.move(2,3,2,4);
         assert (test3 == null);
+
+        test2.nextPlayer = Player.HUMAN;
+        BoardImpl test4 = (BoardImpl) test2.move(2,3,3,4);
+        assert (test4 != null);
 
         int i = 0;
         System.err.println("whitepawns");
-        for (Pawn whitePawn : test1.whitePawns) {
+        for (Pawn whitePawn : test4.whitePawns) {
             i++;
             System.out.print("Pawn " + i);
             System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
         }
 
+        int k = 0;
+        System.err.println("blackpawns");
+        for (Pawn blackpawn : test4.blackPawns) {
+            k++;
+            System.out.print("Pawn " + k);
+            System.out.println(" Row: " + blackpawn.getRow() + " Col: " + blackpawn.getColumn());
+        }
+
+         */
+
+        /*
         assert (test1.getPawn(1,3, Color.WHITE) != null);
         test1.nextPlayer = Player.HUMAN;
         test1.blackPawns.add(new Pawn(2,4));
         BoardImpl test4 = (BoardImpl) test1.move(1,3,2,4);
         assert (test4 != null);
+        */
 
-        // For black Pawns
-        BoardImpl blackBoard = new BoardImpl(2,Color.BLACK);
+        // For machine
+        BoardImpl blackBoard = new BoardImpl(2, Color.WHITE);
 
-        blackBoard.nextPlayer = Player.HUMAN;
-        BoardImpl test5 = (BoardImpl) blackBoard.move(1,1,1,3);
-        assert (test5 != null);
+        blackBoard.makeMove(blackBoard.getPawn(1, 4, Color.BLACK),
+                new Tupel(true, null), 1, 3);
 
-        test5.nextPlayer = Player.HUMAN;
-        BoardImpl test6 = (BoardImpl) test5.move(1,3,2,3);
-        assert (test6 == null);
+        blackBoard.makeMove(blackBoard.getPawn(2, 4, Color.BLACK),
+                new Tupel(true, null), 2, 2);
 
-        test5.nextPlayer = Player.HUMAN;
-        BoardImpl test7 = (BoardImpl) test5.move(1,3,2,4);
-        assert (test7 == null);
+        blackBoard.makeMove(blackBoard.getPawn(3, 4, Color.BLACK),
+                new Tupel(true, null), 3, 2);
 
-        test5.nextPlayer = Player.HUMAN;
-        test5.whitePawns.add(new Pawn(2,4));
-        BoardImpl test8 = (BoardImpl) test5.move(1,3,2,4);
-        assert (test8 != null);
+        blackBoard.makeMove(blackBoard.getPawn(3, 2, Color.BLACK),
+                new Tupel(true,
+                        blackBoard.getPawn(4, 1, Color.WHITE)), 4,
+                1);
+
+        int i = 0;
+        System.err.println("whitepawns");
+        for (Pawn whitePawn : blackBoard.whitePawns) {
+            i++;
+            System.out.print("Pawn " + i);
+            System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
+        }
+
+        int k = 0;
+        System.err.println("blackpawns");
+        for (Pawn blackpawn : blackBoard.blackPawns) {
+            k++;
+            System.out.print("Pawn " + k);
+            System.out.println(" Row: " + blackpawn.getRow() + " Col: " + blackpawn.getColumn());
+        }
+
     }
 
     @Test
     public void createChildrenTest() {
 
-        Node node1 = new Node(new BoardImpl(2,Color.BLACK),null);
-        node1.createChildren(Player.MACHINE);
+        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null);
+        node1.board.blackPawns.clear();
+        node1.board.whitePawns.clear();
+
+        /*
+        node1.board.whitePawns.add(new Pawn(3, 1));
+        node1.board.whitePawns.add(new Pawn(1, 3));
+        node1.board.blackPawns.add(new Pawn(2, 4));
+         */
+
+        node1.board.whitePawns.add(new Pawn(2, 1));
+        node1.board.blackPawns.add(new Pawn(1, 2));
+        node1.board.blackPawns.add(new Pawn(3, 2));
+        node1.createChildren(Player.HUMAN);
 
         System.out.println(node1.children.size());
         int a = 0;
         for (Node child : node1.children) {
             System.out.println();
-            System.out.println("Child: "+ ++a);
+            System.out.println("Child: " + ++a);
 
             int i = 0;
             System.err.println("whitepawns");
             for (Pawn whitePawn : child.board.whitePawns) {
                 i++;
-                System.out.print("Pawn " + i);
+                System.out.print("Pawn: " + i);
                 System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
             }
             int k = 0;
             System.err.println("blackPawns");
             for (Pawn blackPawn : child.board.blackPawns) {
                 k++;
-                System.out.print("Pawn " + k);
+                System.out.print("Pawn: " + k);
                 System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
             }
         }
-
+    /*
         Node node2 = new Node(new BoardImpl(2,Color.WHITE),null);
         node2.createChildren(Player.HUMAN);
+
+    */
     }
 
-    @Test
-    public void cloneTreeTest() {
-        BoardImpl board = new BoardImpl(3,Color.WHITE);
-
-        BoardImpl copy = (BoardImpl) board.clone();
-
-        assert (copy != null);
-    }
 }

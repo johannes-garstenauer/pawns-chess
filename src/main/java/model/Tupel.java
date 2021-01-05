@@ -14,7 +14,7 @@ public class Tupel {
         this.attackedPawn = attackedPawn;
     }
 
-    public boolean isLegalMove() {
+    public boolean getLegalityOfMove() {
         return legalityOfMove;
     }
 

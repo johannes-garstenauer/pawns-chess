@@ -3,6 +3,12 @@ package model;
 public enum Move {
 
     /**
+     * Move pawn left, then forward from the pawns viewpoint toward his
+     * finish row.
+     */
+    DIAGONALLEFT,
+
+    /**
      * Move pawn straight ahead one tile.
      */
     FORWARD,
@@ -13,15 +19,9 @@ public enum Move {
     DOUBLEFORWARD,
 
     /**
-     * Move pawn left, then forward from the pawns viewpoint toward his
-     * finish row.
-     */
-    DIAGONALLEFT,
-
-    /**
      * Move pawn right, then forward from the pawns viewpoint toward his
      * finish row.
      */
-    DIAGONALRIGT
+    DIAGONALRIGHT
 
 }
