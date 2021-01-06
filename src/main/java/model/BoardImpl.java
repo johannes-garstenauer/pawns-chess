@@ -346,120 +346,6 @@ public class BoardImpl implements Board, Cloneable {
         return null;
     }
 
-    public double createBoardRating() {
-
-        // List of humans pawns.
-        List<Pawn> humanPawns;
-
-        // List of machines pawns.
-        List<Pawn> machinePawns;
-
-        if (getHumanColor() == Color.WHITE) {
-            humanPawns = whitePawns;
-            machinePawns = blackPawns;
-        } else {
-            humanPawns = blackPawns;
-            machinePawns = whitePawns;
-        }
-
-        double n = machinePawns.size() - 1.5 * humanPawns.size();
-
-        int machinePawnsMovedFactor = 0;
-        for (int i = 0; i < SIZE; i++) {
-            if (getMachineColor() == Color.WHITE) {
-
-                //If pawns move down to up
-                machinePawnsMovedFactor =
-                        machinePawnsMovedFactor + amountOfPawnsInRow(i + 1,
-                                machinePawns) * i;
-            } else {
-
-                //If pawns move up to down
-                machinePawnsMovedFactor =
-                        machinePawnsMovedFactor +
-                                amountOfPawnsInRow((SIZE - 1) - i + 1,
-                                        machinePawns) * i;
-            }
-        }
-
-        int humanPawnsMovedFactor = 0;
-        for (int i = 0; i < SIZE; i++) {
-            if (getHumanColor() == Color.WHITE) {
-
-                //If pawns move down to up
-                humanPawnsMovedFactor =
-                        humanPawnsMovedFactor + amountOfPawnsInRow(i + 1,
-                                humanPawns) * i;
-            } else {
-
-                //If pawns move up to down
-                humanPawnsMovedFactor =
-                        humanPawnsMovedFactor +
-                                amountOfPawnsInRow((SIZE - 1) - i + 1,
-                                        humanPawns) * i;
-            }
-        }
-
-        double d = machinePawnsMovedFactor - 1.5 * humanPawnsMovedFactor;
-
-        List<Pawn> threatenedMachinePawns = new ArrayList<>();
-
-        // Create list of all machine pawns that are threatened by human pawns.
-        for (Pawn humanPawn : humanPawns) {
-            threatenedMachinePawns.addAll(this.determineThreatenedPawns(humanPawn,
-                    getMachineColor()));
-        }
-
-        // Remove all those machine pawns that are protected by friendly pawns.
-        threatenedMachinePawns.removeIf(threatenedMachinePawn
-                -> this.isPawnProtected(threatenedMachinePawn, getMachineColor()));
-
-        int amountOfThreatenedMachinePawns = threatenedMachinePawns.size();
-
-
-        List<Pawn> threatenedHumanPawns = new ArrayList<>();
-
-        // Create list of all human pawns that are threatened by machine pawns.
-        for (Pawn machinePawn : machinePawns) {
-            threatenedHumanPawns.addAll(this.determineThreatenedPawns(machinePawn,
-                    getHumanColor()));
-        }
-
-        // Remove all those human pawns that are protected by friendly pawns.
-        threatenedHumanPawns.removeIf(threatenedHumanPawn
-                -> isPawnProtected(threatenedHumanPawn, getHumanColor()));
-
-        int amountOfThreatenedHumanPawns = threatenedHumanPawns.size();
-
-        double c = amountOfThreatenedHumanPawns
-                - 1.5 * amountOfThreatenedMachinePawns;
-
-        int amountOfIsolatedMachinePawns = 0;
-        for (Pawn machinePawn : machinePawns) {
-            if (isPawnIsolated(machinePawn, getMachineColor())) {
-                amountOfIsolatedMachinePawns++;
-            }
-        }
-
-        int amountOfIsolatedHumanPawns = 0;
-        for (Pawn humanPawn : humanPawns) {
-            if (isPawnIsolated(humanPawn, getHumanColor())) {
-                amountOfIsolatedHumanPawns++;
-            }
-        }
-
-        double i =
-                amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
-
-
-        //TODO: ist i = machine.level ? (nicht double i gemeint)
-        //TODO double v
-        double v = 0;
-
-        System.out.print("sum: ");
-        System.out.print(n + d + c + i + v);
-        return n + d + c + i + v;
-    }
 
     /**
      * @param pawn
@@ -485,7 +371,7 @@ public class BoardImpl implements Board, Cloneable {
         return true;
     }
 
-    private Color getMachineColor() {
+    Color getMachineColor() {
         return machine.getColor();
     }
 
@@ -598,7 +484,7 @@ public class BoardImpl implements Board, Cloneable {
         }
     }
 
-    /*
+    //TODO: praktisch nur eine code duplikation von Node.createChildren
     public boolean hasToSuspendMove(Player player) {
 
         //TODO getplayerPawns methode verwenden
@@ -641,10 +527,9 @@ public class BoardImpl implements Board, Cloneable {
                 }
             }
         }
-        return false;
+        return true;
     }
 
-     */
 
     public void setNextPlayer(Player nextPlayer) {
         this.nextPlayer = nextPlayer;
@@ -667,21 +552,33 @@ public class BoardImpl implements Board, Cloneable {
             upperRowPawns = whitePawns;
         }
 
+        if (whitePawns.isEmpty() || blackPawns.isEmpty()) {
+            return true;
+        }
+
+
         // Determine whether a pawn has reached his final row.
         if (amountOfPawnsInRow(1, upperRowPawns) > 0
                 || amountOfPawnsInRow(8, lowerRowPawns) > 0) {
             return true;
         } else {
 
-            //TODO hier Methode hasToSuspendMove verwenden
-
-            // List containing all pawns.
-            List<Pawn> allPawns = new ArrayList<>();
-            allPawns.addAll(lowerRowPawns);
-            allPawns.addAll(upperRowPawns);
-
+            /*
             // Determine whether any pawn could make a legal move.
-            for (Pawn pawn : allPawns) {
+            for (Pawn pawn : lowerRowPawns) {
+                for (int colTo = pawn.getColumn() - 1; colTo <=
+                        pawn.getColumn() + 1; colTo++) {
+                    for (int rowTo = pawn.getRow(); rowTo <=
+                            pawn.getRow() + 1; rowTo++) {
+                        //TODO: hier isLegalMove stattdessen verwenden
+                        if (move(pawn.getColumn(),
+                                pawn.getRow(), colTo, rowTo) != null) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            for (Pawn pawn : upperRowPawns) {
                 for (int colTo = pawn.getColumn() - 1; colTo <=
                         pawn.getColumn() + 1; colTo++) {
                     for (int rowTo = pawn.getRow(); rowTo <=
@@ -693,7 +590,11 @@ public class BoardImpl implements Board, Cloneable {
                     }
                 }
             }
-            return true;
+
+             */
+
+            // Determine whether there is a legal move left.
+            return hasToSuspendMove(machine) && hasToSuspendMove(human);
         }
     }
 
@@ -722,7 +623,18 @@ public class BoardImpl implements Board, Cloneable {
             return machine;
         } else if (amountOfPawnsInRow(SIZE, humanPawns) > 0) {
             return human;
-        } else if (!isGameOver()) {
+        } else {
+
+            //Determine whether one or both player has no pawns left.
+            if (humanPawns.isEmpty() && machinePawns.isEmpty()) {
+                return null;
+            } else if (humanPawns.isEmpty()) {
+                return machine;
+            } else if (machinePawns.isEmpty()) {
+                return human;
+            }
+
+        } if (!isGameOver()) {
             //TODO: passende Exception?
             throw new IllegalCallerException("This game is not over - there "
                     + "cannot be a winner or draw.");

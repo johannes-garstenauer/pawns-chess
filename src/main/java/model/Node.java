@@ -9,36 +9,139 @@ public class Node //implements Cloneable
     public BoardImpl board;
     public Node parent;
     public List<Node> children = new ArrayList<>();
+    int depth;
 
     //TODO
     double value = Double.MIN_VALUE;
 
-    public Node(BoardImpl board, Node parent) {
+    public Node(BoardImpl board, Node parent, int depth) {
         this.board = board;
         this.parent = parent;
+        this.depth = depth;
     }
 
     public double getValue() {
         return value;
     }
 
+    public double createBoardRating() {
+
+        // List of humans pawns.
+        List<Pawn> humanPawns;
+
+        // List of machines pawns.
+        List<Pawn> machinePawns;
+
+        if (board.getHumanColor() == Color.WHITE) {
+            humanPawns = board.whitePawns;
+            machinePawns = board.blackPawns;
+        } else {
+            humanPawns = board.blackPawns;
+            machinePawns = board.whitePawns;
+        }
+
+        double n = machinePawns.size() - 1.5 * humanPawns.size();
+
+        int machinePawnsMovedFactor = 0;
+        for (int i = 0; i < board.SIZE; i++) {
+            if (board.getMachineColor() == Color.WHITE) {
+
+                //If pawns move down to up
+                machinePawnsMovedFactor =
+                        machinePawnsMovedFactor + board.amountOfPawnsInRow(i + 1,
+                                machinePawns) * i;
+            } else {
+
+                //If pawns move up to down
+                machinePawnsMovedFactor =
+                        machinePawnsMovedFactor +
+                                board.amountOfPawnsInRow((board.SIZE - 1) - i + 1,
+                                        machinePawns) * i;
+            }
+        }
+
+        int humanPawnsMovedFactor = 0;
+        for (int i = 0; i < board.SIZE; i++) {
+            if (board.getHumanColor() == Color.WHITE) {
+
+                //If pawns move down to up
+                humanPawnsMovedFactor =
+                        humanPawnsMovedFactor + board.amountOfPawnsInRow(i + 1,
+                                humanPawns) * i;
+            } else {
+
+                //If pawns move up to down
+                humanPawnsMovedFactor =
+                        humanPawnsMovedFactor +
+                                board.amountOfPawnsInRow((board.SIZE - 1) - i + 1,
+                                        humanPawns) * i;
+            }
+        }
+
+        double d = machinePawnsMovedFactor - 1.5 * humanPawnsMovedFactor;
+
+        List<Pawn> threatenedMachinePawns = new ArrayList<>();
+
+        // Create list of all machine pawns that are threatened by human pawns.
+        for (Pawn humanPawn : humanPawns) {
+            threatenedMachinePawns.addAll(board.determineThreatenedPawns(humanPawn,
+                    board.getMachineColor()));
+        }
+
+        // Remove all those machine pawns that are protected by friendly pawns.
+        threatenedMachinePawns.removeIf(threatenedMachinePawn
+                -> board.isPawnProtected(threatenedMachinePawn, board.getMachineColor()));
+
+        int amountOfThreatenedMachinePawns = threatenedMachinePawns.size();
+
+
+        List<Pawn> threatenedHumanPawns = new ArrayList<>();
+
+        // Create list of all human pawns that are threatened by machine pawns.
+        for (Pawn machinePawn : machinePawns) {
+            threatenedHumanPawns.addAll(board.determineThreatenedPawns(machinePawn,
+                    board.getHumanColor()));
+        }
+
+        // Remove all those human pawns that are protected by friendly pawns.
+        threatenedHumanPawns.removeIf(threatenedHumanPawn
+                -> board.isPawnProtected(threatenedHumanPawn, board.getHumanColor()));
+
+        int amountOfThreatenedHumanPawns = threatenedHumanPawns.size();
+
+        double c = amountOfThreatenedHumanPawns
+                - 1.5 * amountOfThreatenedMachinePawns;
+
+        int amountOfIsolatedMachinePawns = 0;
+        for (Pawn machinePawn : machinePawns) {
+            if (board.isPawnIsolated(machinePawn, board.getMachineColor())) {
+                amountOfIsolatedMachinePawns++;
+            }
+        }
+
+        int amountOfIsolatedHumanPawns = 0;
+        for (Pawn humanPawn : humanPawns) {
+            if (board.isPawnIsolated(humanPawn, board.getHumanColor())) {
+                amountOfIsolatedHumanPawns++;
+            }
+        }
+
+        double i =
+                amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
+
+
+        //TODO: ist i = machine.level ? (nicht double i gemeint)
+        //TODO double v
+        double v = 0;
+
+        System.out.print("sum: ");
+        System.out.print(n + d + c + i + v);
+        return n + d + c + i + v;
+    }
+
     //TODO case: spieler muss aussetzen
     public void createSubTree(int level) {
         if (level > 0) {
-
-            /*
-            if(!board.hasToSuspendMove(getPlayer())) {
-                this.createChildren(getPlayer());
-            } else {
-
-                // In case the player has to suspend a move let the other
-                // player move
-                if(getPlayer() == Player.HUMAN) {
-                    this.createChildren();
-                }
-            }
-
-             */
 
             createChildren(getPlayer());
 
@@ -66,7 +169,7 @@ public class Node //implements Cloneable
         if (children.isEmpty()) {
 
             // Assign value to leaf node
-            value = board.createBoardRating();
+            value = createBoardRating();
         } else {
 
             // Assign values recursively to child nodes
@@ -78,9 +181,9 @@ public class Node //implements Cloneable
 
             // Assign value to inner node
             if (getPlayer() == Player.HUMAN) {
-                value = board.createBoardRating() + getBestMove().getValue();
+                value = createBoardRating() + getBestMove().getValue();
             } else {
-                value = board.createBoardRating() + getWorstMove().getValue();
+                value = createBoardRating() + getWorstMove().getValue();
             }
         }
     }
@@ -184,7 +287,7 @@ public class Node //implements Cloneable
                                     temp, colTo,
                                     rowTo);
                             children.add(new Node(boardClone,
-                                    this));
+                                    this, this.depth + 1));
                         }
                     }
                 }

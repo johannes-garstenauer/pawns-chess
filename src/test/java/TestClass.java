@@ -334,16 +334,19 @@ public class TestClass {
         assert (!board.isGameOver());
 
         board.whitePawns.remove(p);
-
         assert (board.isGameOver());
 
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+        board.whitePawns.add(new Pawn(1,4));
+        assert (board.isGameOver());
     }
 
     @Test
     public void getWinnerTest() {
 
         //Test for size = 4
-        BoardImpl board = new BoardImpl(0, null);
+        BoardImpl board = new BoardImpl(3, Color.WHITE);
 
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -359,6 +362,11 @@ public class TestClass {
 
         board.blackPawns.add(new Pawn(1, 1));
         assert (board.getWinner() == Player.MACHINE);
+
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+        board.whitePawns.add(new Pawn(1,1));
+        assert (board.getWinner() == Player.HUMAN);
     }
 
     @Test
@@ -562,7 +570,7 @@ public class TestClass {
     @Test
     public void createChildrenTest() {
 
-        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null);
+        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null, 0);
         node1.board.blackPawns.clear();
         node1.board.whitePawns.clear();
 
@@ -609,7 +617,7 @@ public class TestClass {
     public void createSubTreeTest() {
         //For SIZE = 4
 
-        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null);
+        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null,0);
         node1.board.blackPawns.clear();
         node1.board.whitePawns.clear();
 

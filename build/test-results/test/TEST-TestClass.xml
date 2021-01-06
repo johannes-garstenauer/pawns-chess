@@ -1,37 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-06T17:21:36" hostname="LAPTOP-GS97P0F9" time="0.033">
+<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-06T18:07:36" hostname="LAPTOP-GS97P0F9" time="0.006">
   <properties/>
-  <testcase name="createSubTreeTest" classname="TestClass" time="0.033"/>
-  <system-out><![CDATA[FORWARD
-Col: 3 ColTo: 3
-Row: 4 rowTo: 3
-FORWARD
-Col: 3 ColTo: 3
-Row: 3 rowTo: 2
-DIAGONALLEFT
-Col: 4 ColTo: 3
-Row: 1 rowTo: 2
-1
-
-Child: 1
-Pawn: 1 Row: 1 Col: 4
-Pawn: 1 Row: 3 Col: 3
-Pawn: 2 Row: 2 Col: 4
-
-Pawn: 1 Row: 1 Col: 4
-Pawn: 1 Row: 2 Col: 3
-Pawn: 2 Row: 2 Col: 4
-
-Pawn: 1 Row: 2 Col: 3
-Pawn: 1 Row: 2 Col: 4
-]]></system-out>
-  <system-err><![CDATA[whitepawns
-blackPawns
-ChildsChild: 1
-whitepawns
-blackPawns
-ChildsChildChild: 1
-whitepawns
-blackPawns
-]]></system-err>
+  <testcase name="getWinnerTest" classname="TestClass" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
 </testsuite>

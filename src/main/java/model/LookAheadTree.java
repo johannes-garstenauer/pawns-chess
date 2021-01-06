@@ -7,7 +7,7 @@ public class LookAheadTree //implements Cloneable
     private final Node root;
 
     public LookAheadTree (BoardImpl board) {
-        this.root = new Node(board, null);
+        this.root = new Node(board, null, 0);
     }
 
     public void constructTree(int level){
@@ -53,7 +53,6 @@ public class LookAheadTree //implements Cloneable
             }
         }
     }
-
      */
     /*
     @Override
