@@ -396,7 +396,21 @@ public class TestClass {
     @Test
     public void newMoveTest() {
         //FOR SIZE 8
+        BoardImpl board = new BoardImpl(2,Color.WHITE);
+        board.whitePawns.clear();
+        board.blackPawns.clear();
 
+        Pawn p = new Pawn(1,1);
+        board.whitePawns.add(p);
+        Board res = board.move(1,1,1,3);
+        assert (res != null);
+
+        ((BoardImpl) res).setNextPlayer(Player.HUMAN);
+        res = res.move(1,3,1,5);
+        assert (res == null);
+
+
+/*
         BoardImpl board = new BoardImpl(2,Color.WHITE);
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -437,6 +451,29 @@ public class TestClass {
         board.setNextPlayer(Player.HUMAN);
         res = board.move(1,3,1,5);
         assert (res == null);
+
+
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+        board.setNextPlayer(Player.HUMAN);
+        Pawn u = new Pawn(1,4);
+        board.whitePawns.add(u);
+
+        Tupel temp = board.isLegalMove(Move.DOUBLEFORWARD,u,1,2);
+
+        assert temp.getLegalityOfMove();
+
+ */
+/*
+        board.whitePawns.clear();
+        board.setNextPlayer(Player.HUMAN);
+        Pawn l = new Pawn(1,1);
+        board.whitePawns.add(l);
+        l.hasMoved();
+        res = board.move(1,1,1,3);
+        assert (res == null);
+
+ */
 
         /*
         BoardImpl whiteBoard = new BoardImpl(2,Color.WHITE);
@@ -579,10 +616,11 @@ public class TestClass {
         node1.board.whitePawns.add(new Pawn(4, 1));
         Pawn pawn = new Pawn(3, 4);
         pawn.hasMoved();
+        assert !pawn.isOpeningMove();
         node1.board.blackPawns.add(pawn);
         node1.board.blackPawns.add(new Pawn(4, 2));
 
-        node1.createSubTree(2);
+        node1.createSubTree(3);
 
         System.out.println(node1.children.size());
         int a = 0;
@@ -623,6 +661,27 @@ public class TestClass {
                     l++;
                     System.out.print("Pawn: " + l);
                     System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
+                }
+
+                int u = 0;
+                for (Node node2 : node.children) {
+                    System.out.println();
+                    System.err.println("ChildsChildChild: " + ++u);
+
+                    int f = 0;
+                    System.err.println("whitepawns");
+                    for (Pawn whitePawn : node2.board.whitePawns) {
+                        f++;
+                        System.out.print("Pawn: " + f);
+                        System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
+                    }
+                    int p = 0;
+                    System.err.println("blackPawns");
+                    for (Pawn blackPawn : node2.board.blackPawns) {
+                        p++;
+                        System.out.print("Pawn: " + p);
+                        System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
+                    }
                 }
             }
         }

@@ -113,7 +113,6 @@ public class BoardImpl implements Board, Cloneable {
         } else {
             setNextPlayer(Player.HUMAN);
         }
-        pawn.hasMoved();
     }
 
     /**
@@ -182,26 +181,32 @@ public class BoardImpl implements Board, Cloneable {
             }
              */
 
-            if (move == Move.DOUBLEFORWARD && pawn.isOpeningMove()) {
+            if (move == Move.DOUBLEFORWARD) {
 
-                // Determine whether the pawn is moving up or down
-                if (pawn.getRow() > rowTo) {
+                if (pawn.isOpeningMove()) {
 
-                    // Determine whether there is a pawn blocking the double move
-                    if (getSlot(pawn.getColumn(), pawn.getRow() - 1) != Color.NONE) {
-                        return new Tupel(false, null);
+                    // Determine whether the pawn is moving up or down
+                    if (pawn.getRow() > rowTo) {
+
+                        // Determine whether there is a pawn blocking the double move
+                        if (getSlot(pawn.getColumn(), pawn.getRow() - 1) != Color.NONE) {
+                            return new Tupel(false, null);
+                        } else {
+                            return new Tupel(true, null);
+                        }
                     } else {
-                        return new Tupel(true, null);
-                    }
-                }  else {
 
-                    // Determine whether there is a pawn blocking the double move
-                    if (getSlot(pawn.getColumn(), pawn.getRow() + 1) != Color.NONE) {
-                        return new Tupel(false, null);
-                    } else {
-                        return new Tupel(true, null);
+                        // Determine whether there is a pawn blocking the double move
+                        if (getSlot(pawn.getColumn(), pawn.getRow() + 1) != Color.NONE) {
+                            return new Tupel(false, null);
+                        } else {
+                            return new Tupel(true, null);
+                        }
                     }
+                } else {
+                    return new Tupel(false, null);
                 }
+
             } else {
 
                 // Result for a normal move forward
