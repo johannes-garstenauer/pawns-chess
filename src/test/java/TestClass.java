@@ -395,7 +395,7 @@ public class TestClass {
 
     @Test
     public void newMoveTest() {
-        //FOR SIZE 4
+        //FOR SIZE 8
 
         BoardImpl board = new BoardImpl(2,Color.WHITE);
         board.whitePawns.clear();
@@ -424,7 +424,20 @@ public class TestClass {
         board.setNextPlayer(Player.HUMAN);
 
         assert (res == null);
-        ;
+
+
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+        Pawn p = new Pawn(1,1);
+        board.whitePawns.add(p);
+
+        res = board.move(1,1,1,3);
+        assert (res != null);
+
+        board.setNextPlayer(Player.HUMAN);
+        res = board.move(1,3,1,5);
+        assert (res == null);
+
         /*
         BoardImpl whiteBoard = new BoardImpl(2,Color.WHITE);
 
@@ -469,6 +482,7 @@ public class TestClass {
         assert (test4 != null);
         */
 
+        /*
         // For machine
         BoardImpl blackBoard = new BoardImpl(2, Color.WHITE);
 
@@ -486,6 +500,8 @@ public class TestClass {
                         blackBoard.getPawn(4, 1, Color.WHITE)), 4,
                 1);
 
+
+
         int i = 0;
         System.err.println("whitepawns");
         for (Pawn whitePawn : blackBoard.whitePawns) {
@@ -501,6 +517,8 @@ public class TestClass {
             System.out.print("Pawn " + k);
             System.out.println(" Row: " + blackpawn.getRow() + " Col: " + blackpawn.getColumn());
         }
+
+         */
 
     }
 

@@ -106,12 +106,14 @@ public class BoardImpl implements Board, Cloneable {
 
         //TODO: vorläufig bis createChildren in Node move und machineMove
         // aufruft
+        // oder auch nicht vorläufig
 
         if(getNextPlayer() == Player.HUMAN) {
             setNextPlayer(Player.MACHINE);
         } else {
             setNextPlayer(Player.HUMAN);
         }
+        pawn.hasMoved();
     }
 
     /**
@@ -200,8 +202,10 @@ public class BoardImpl implements Board, Cloneable {
                         return new Tupel(true, null);
                     }
                 }
+            } else {
 
-
+                // Result for a normal move forward
+                return new Tupel(true, null);
             }
 
         } else if (move == Move.DIAGONALLEFT || move == Move.DIAGONALRIGHT) {
