@@ -397,6 +397,34 @@ public class TestClass {
     public void newMoveTest() {
         //FOR SIZE 4
 
+        BoardImpl board = new BoardImpl(2,Color.WHITE);
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+
+        board.whitePawns.add(new Pawn(1,1));
+        Board res = board.move(1,1,1,3);
+        board.setNextPlayer(Player.HUMAN);
+
+        assert (res != null);
+
+        board.whitePawns.clear();
+        board.whitePawns.add(new Pawn(1,1));
+        board.blackPawns.add(new Pawn(1,2));
+        res = board.move(1,1,1,3);
+        board.setNextPlayer(Player.HUMAN);
+
+        assert (res == null);
+
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+
+        board.whitePawns.add(new Pawn(1,1));
+        board.whitePawns.add(new Pawn(1,2));
+        res = board.move(1,1,1,3);
+        board.setNextPlayer(Player.HUMAN);
+
+        assert (res == null);
+        ;
         /*
         BoardImpl whiteBoard = new BoardImpl(2,Color.WHITE);
 
@@ -520,6 +548,69 @@ public class TestClass {
         node2.createChildren(Player.HUMAN);
 
     */
+    }
+
+    @Test
+    public void createSubTreeTest() {
+        //For SIZE = 4
+
+        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null);
+        node1.board.blackPawns.clear();
+        node1.board.whitePawns.clear();
+
+        node1.board.whitePawns.add(new Pawn(4, 1));
+        Pawn pawn = new Pawn(3, 4);
+        pawn.hasMoved();
+        node1.board.blackPawns.add(pawn);
+        node1.board.blackPawns.add(new Pawn(4, 2));
+
+        node1.createSubTree(2);
+
+        System.out.println(node1.children.size());
+        int a = 0;
+        for (Node child : node1.children) {
+            System.out.println();
+            System.out.println("Child: " + ++a);
+
+            int i = 0;
+            System.err.println("whitepawns");
+            for (Pawn whitePawn : child.board.whitePawns) {
+                i++;
+                System.out.print("Pawn: " + i);
+                System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
+            }
+            int k = 0;
+            System.err.println("blackPawns");
+            for (Pawn blackPawn : child.board.blackPawns) {
+                k++;
+                System.out.print("Pawn: " + k);
+                System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
+            }
+
+            int b = 0;
+            for (Node node : child.children) {
+                System.out.println();
+                System.err.println("ChildsChild: " + ++b);
+
+                int m = 0;
+                System.err.println("whitepawns");
+                for (Pawn whitePawn : node.board.whitePawns) {
+                    m++;
+                    System.out.print("Pawn: " + m);
+                    System.out.println(" Row: " + whitePawn.getRow() + " Col: " + whitePawn.getColumn());
+                }
+                int l = 0;
+                System.err.println("blackPawns");
+                for (Pawn blackPawn : node.board.blackPawns) {
+                    l++;
+                    System.out.print("Pawn: " + l);
+                    System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
+                }
+            }
+        }
+
+
+
     }
 
 }

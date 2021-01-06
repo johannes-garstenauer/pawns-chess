@@ -104,6 +104,14 @@ public class BoardImpl implements Board, Cloneable {
         pawn.setRow(rowTo);
         pawn.hasMoved();
 
+        //TODO: vorläufig bis createChildren in Node move und machineMove
+        // aufruft
+
+        if(getNextPlayer() == Player.HUMAN) {
+            setNextPlayer(Player.MACHINE);
+        } else {
+            setNextPlayer(Player.HUMAN);
+        }
     }
 
     /**
@@ -118,6 +126,7 @@ public class BoardImpl implements Board, Cloneable {
     public Tupel isLegalMove(Move move, Pawn pawn, int colTo,
                              int rowTo) {
 
+        //TODO: Überprüfung ob currentplayer aussetzen muss
 
         try {
             if (determineMove(pawn.getColumn(), pawn.getRow(), colTo, rowTo) != move) {
@@ -146,7 +155,8 @@ public class BoardImpl implements Board, Cloneable {
 
         if (move == Move.FORWARD || move == Move.DOUBLEFORWARD) {
 
-            //TODO: replace fors with getPawn
+            //TODO: replace fors with getPawn oder getSlot
+            //TODO: doubleforward kann pawns überspringt
 
             // Determine whether a friendly pawn blocks this move.
             for (Pawn friendlyPawn : friendlyPawns) {
@@ -163,9 +173,35 @@ public class BoardImpl implements Board, Cloneable {
                 }
             }
 
-            // Determine whether this pawn can make a double move.
+            /*
+            // Determine whether this pawn can make a double move forward.
             if (move != Move.DOUBLEFORWARD || pawn.isOpeningMove()) {
                 return new Tupel(true, null);
+            }
+             */
+
+            if (move == Move.DOUBLEFORWARD && pawn.isOpeningMove()) {
+
+                // Determine whether the pawn is moving up or down
+                if (pawn.getRow() > rowTo) {
+
+                    // Determine whether there is a pawn blocking the double move
+                    if (getSlot(pawn.getColumn(), pawn.getRow() - 1) != Color.NONE) {
+                        return new Tupel(false, null);
+                    } else {
+                        return new Tupel(true, null);
+                    }
+                }  else {
+
+                    // Determine whether there is a pawn blocking the double move
+                    if (getSlot(pawn.getColumn(), pawn.getRow() + 1) != Color.NONE) {
+                        return new Tupel(false, null);
+                    } else {
+                        return new Tupel(true, null);
+                    }
+                }
+
+
             }
 
         } else if (move == Move.DIAGONALLEFT || move == Move.DIAGONALRIGHT) {
@@ -196,10 +232,12 @@ public class BoardImpl implements Board, Cloneable {
 
         //TODO this?? gud? -> combine with if unten
         if (nextPlayer != human) {
-            throw new IllegalArgumentException("its not your turn duuude");
+            throw new IllegalCallerException("its not your turn duuude");
         }
 
         // Assign move and determine whether it is a legal move.
+        //TODO: diese funktionalität gehört eig in isLegalMove -> Move mit
+        // rowDist und colDist erzeugen zur vereinfachung
         Move move;
         try {
             move = determineMove(colFrom, rowFrom, colTo, rowTo);
@@ -217,7 +255,7 @@ public class BoardImpl implements Board, Cloneable {
 
         if (temp.getLegalityOfMove() && pawnToBeMoved != null) {
             newBoard.makeMove(pawnToBeMoved, temp, colTo, rowTo);
-            newBoard.nextPlayer = machine;
+            //newBoard.setNextPlayer(machine);
 
             /*
             // Construct new LookAheadTree
@@ -284,18 +322,18 @@ public class BoardImpl implements Board, Cloneable {
     @Override
     public Board machineMove() {
         if (nextPlayer != machine) {
-            //TODO oder throw new nicht dran exception (illegalmove)
-            return null;
+            throw new IllegalCallerException("its not your turn duuude");
         }
+
         //Board on which the move is executed.
         BoardImpl newBoard = (BoardImpl) this.clone();
 
         LookAheadTree lookAheadTree = new LookAheadTree(this);
 
         // Construct new LookAheadTree
-        lookAheadTree.getRoot().constructTree(machine.getLevel());
+        lookAheadTree.constructTree(machine.getLevel());
 
-        nextPlayer = human;
+        //nextPlayer = human;
         return null;
     }
 
@@ -551,6 +589,58 @@ public class BoardImpl implements Board, Cloneable {
         }
     }
 
+    /*
+    public boolean hasToSuspendMove(Player player) {
+
+        //TODO getplayerPawns methode verwenden
+
+        // List of players pawns
+        List<Pawn> playerPawns = new ArrayList<>();
+
+        if (player.getColor() == Color.WHITE) {
+            playerPawns = whitePawns;
+        } else if (player.getColor() == Color.BLACK) {
+            playerPawns = blackPawns;
+        } else {
+            throw new IllegalArgumentException("Please call  this method with "
+                    + "player human or machine.");
+        }
+
+        // Determine whether any pawn from the players pawns could make a legal
+        // move.
+        for (Pawn pawn : playerPawns) {
+            for (Move move : Move.values()) {
+                //Can move at most one column.
+                for (int colTo = pawn.getColumn() - 1; colTo
+                        <= pawn.getColumn() + 1; colTo++) {
+                    //Can move at most two rows.
+                    for (int rowTo = pawn.getRow() - 2; rowTo <= pawn.getRow() + 2;
+                         rowTo++) {
+
+                        Tupel temp = this.isLegalMove(move, pawn, colTo,
+                                rowTo);
+
+                        // If the move is legal and an actual movement takes
+                        // place.
+                        if (temp.getLegalityOfMove()
+                                && (colTo != pawn.getColumn()
+                                || rowTo != pawn.getRow())) {
+
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+     */
+
+    public void setNextPlayer(Player nextPlayer) {
+        this.nextPlayer = nextPlayer;
+    }
+
     @Override
     public boolean isGameOver() {
 
@@ -573,6 +663,8 @@ public class BoardImpl implements Board, Cloneable {
                 || amountOfPawnsInRow(8, lowerRowPawns) > 0) {
             return true;
         } else {
+
+            //TODO hier Methode hasToSuspendMove verwenden
 
             // List containing all pawns.
             List<Pawn> allPawns = new ArrayList<>();
