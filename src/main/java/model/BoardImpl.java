@@ -423,10 +423,18 @@ public class BoardImpl implements Board, Cloneable {
             throw new IllegalArgumentException("There is no pawn.");
         }
 
-        // Checks if diagonally behind are friendly pawns.
-        return getPawn(pawn.getColumn() - 1, pawn.getRow() - 1
-                , pawnColor) != null || getPawn(pawn.getColumn() + 1,
-                pawn.getRow() - 1, pawnColor) != null;
+        if (pawnColor == getHumanColor()) {
+            // Checks if diagonally behind are friendly pawns.
+            return getPawn(pawn.getColumn() - 1, pawn.getRow() - 1
+                    , pawnColor) != null || getPawn(pawn.getColumn() + 1,
+                    pawn.getRow() - 1, pawnColor) != null;
+        } else {
+            // Checks if diagonally in front (from the perspective of the
+            // player) are friendly pawns.
+            return getPawn(pawn.getColumn() - 1, pawn.getRow() + 1
+                    , pawnColor) != null || getPawn(pawn.getColumn() + 1,
+                    pawn.getRow() + 1, pawnColor) != null;
+        }
 
     }
 

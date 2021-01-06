@@ -291,8 +291,9 @@ public class TestClass {
     @Test
     public void createBoardRatingTest() {
 
-        //Example for Size = 8
+        //Example for Size = 4
 
+        /*
         BoardImpl board = new BoardImpl(3,Color.WHITE);
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -320,8 +321,23 @@ public class TestClass {
             System.out.println(child.getValue());
         }
 
+         */
+
+        //Example for Size = 4
+        BoardImpl board = new BoardImpl(1,Color.WHITE);
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+
+        board.blackPawns.add(new Pawn(1,3));
+        board.blackPawns.add(new Pawn(2,2));
+
+        board.whitePawns.add(new Pawn(2,4));
+        board.whitePawns.add(new Pawn(3,1));
+        board.whitePawns.add(new Pawn(4,2));
 
 
+        Node node = new Node(board,null,2);
+        System.out.println(node.createBoardRating());
 
         /*
         BoardImpl board = new BoardImpl(0, null);

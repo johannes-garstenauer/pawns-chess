@@ -88,6 +88,13 @@ public class Node //implements Cloneable
         }
 
         // Remove all those machine pawns that are protected by friendly pawns.
+        for (Pawn threatenedMachinePawn : threatenedMachinePawns) {
+            if (board.isPawnProtected(threatenedMachinePawn,
+                    board.getMachineColor())) {
+
+            }
+        }
+
         threatenedMachinePawns.removeIf(threatenedMachinePawn
                 -> board.isPawnProtected(threatenedMachinePawn, board.getMachineColor()));
 
@@ -128,9 +135,6 @@ public class Node //implements Cloneable
         double i =
                 amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
 
-
-        //TODO: ist i = machine.level ? (nicht double i gemeint)
-        //TODO double v
         double v;
         try {
 
@@ -148,6 +152,11 @@ public class Node //implements Cloneable
             v = 0;
         }
 
+        System.out.println(n);
+        System.out.println(d);
+        System.out.println(c);
+        System.out.println(i);
+        System.out.println(v);
         return n + d + c + i + v;
     }
 
