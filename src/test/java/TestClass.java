@@ -291,7 +291,39 @@ public class TestClass {
     @Test
     public void createBoardRatingTest() {
 
-        //Example for Size = 4
+        //Example for Size = 8
+
+        BoardImpl board = new BoardImpl(3,Color.WHITE);
+        board.whitePawns.clear();
+        board.blackPawns.clear();
+
+        board.blackPawns.add(new Pawn(1,8));
+        board.blackPawns.add(new Pawn(3,6));
+        board.blackPawns.add(new Pawn(4,6));
+        board.blackPawns.add(new Pawn(6,6));
+        board.blackPawns.add(new Pawn(7,6));
+        board.blackPawns.add(new Pawn(8,7));
+
+        board.whitePawns.add(new Pawn(2,6));
+        board.whitePawns.add(new Pawn(2,4));
+        board.whitePawns.add(new Pawn(4,4));
+        board.whitePawns.add(new Pawn(5,1));
+        board.whitePawns.add(new Pawn(6,1));
+        board.whitePawns.add(new Pawn(7,1));
+        board.whitePawns.add(new Pawn(8,1));
+
+        Node node = new Node(board,null,0);
+        node.createSubTree(3);
+        node.setValue();
+
+        for (Node child: node.children) {
+            System.out.println(child.getValue());
+        }
+
+
+
+
+        /*
         BoardImpl board = new BoardImpl(0, null);
 
         board.whitePawns.clear();
@@ -304,7 +336,9 @@ public class TestClass {
         board.blackPawns.add(new Pawn(3, 2));
         board.blackPawns.add(new Pawn(4, 4));
 
+        Node node = new Node()
         assert (board.createBoardRating() == -8.5);
+         */
     }
 
     @Test

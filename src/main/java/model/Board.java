@@ -21,7 +21,7 @@ public interface Board extends Cloneable {
      * The number of columns (files) and rows (ranks) of the game grid.
      * Originally 8. Here, at least 4.
      */
-    int SIZE = 4;
+    int SIZE = 8;
 
     /**
      * Gets the player who should or already has opened the game. As an

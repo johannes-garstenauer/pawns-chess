@@ -2,7 +2,6 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 public class Node //implements Cloneable
 {
@@ -132,10 +131,23 @@ public class Node //implements Cloneable
 
         //TODO: ist i = machine.level ? (nicht double i gemeint)
         //TODO double v
-        double v = 0;
+        double v;
+        try {
 
-        System.out.print("sum: ");
-        System.out.print(n + d + c + i + v);
+            // Player which might have won by playing the last move.
+            //Player currentPlayer = parent.getNextPlayer();
+
+            if (board.getWinner() == Player.HUMAN) {
+                v = -1.5 * 5000/depth;
+            } else {
+                //TODO: what
+                v = 5000 / depth;
+            }
+
+        } catch (IllegalCallerException e) {
+            v = 0;
+        }
+
         return n + d + c + i + v;
     }
 
@@ -143,12 +155,12 @@ public class Node //implements Cloneable
     public void createSubTree(int level) {
         if (level > 0) {
 
-            createChildren(getPlayer());
+            createChildren(getNextPlayer());
 
             // In case the player has to suspend a move let the other
             // player move.
             if (children.isEmpty()) {
-                if(getPlayer() == Player.HUMAN) {
+                if(getNextPlayer() == Player.HUMAN) {
                     board.setNextPlayer(Player.MACHINE);
                     createChildren(Player.MACHINE);
                 } else {
@@ -180,7 +192,7 @@ public class Node //implements Cloneable
             }
 
             // Assign value to inner node
-            if (getPlayer() == Player.HUMAN) {
+            if (getNextPlayer() == Player.HUMAN) {
                 value = createBoardRating() + getBestMove().getValue();
             } else {
                 value = createBoardRating() + getWorstMove().getValue();
@@ -239,7 +251,7 @@ public class Node //implements Cloneable
         }
     }
 
-    public Player getPlayer() {
+    public Player getNextPlayer() {
         return board.getNextPlayer();
     }
 
@@ -275,12 +287,6 @@ public class Node //implements Cloneable
                         if (temp.getLegalityOfMove()
                                 && (colTo != pawn.getColumn()
                                 || rowTo != pawn.getRow())) {
-
-                            System.out.println(move);
-                            System.out.println("Col: " + pawn.getColumn() + " "
-                                    + "ColTo: " + colTo);
-                            System.out.println("Row: " + pawn.getRow() + " "
-                                    + "rowTo: " + rowTo);
 
                             BoardImpl boardClone = (BoardImpl) board.clone();
                             boardClone.makeMove(boardClone.getPawn(pawn.getColumn(), pawn.getRow(), player.getColor()),
