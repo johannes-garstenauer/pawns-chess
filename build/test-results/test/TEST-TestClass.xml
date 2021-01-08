@@ -1,15 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-08T21:24:18" hostname="LAPTOP-GS97P0F9" time="0.018">
+<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-08T21:43:48" hostname="LAPTOP-GS97P0F9" time="0.08">
   <properties/>
-  <testcase name="createBoardRatingTest" classname="TestClass" time="0.018"/>
-  <system-out><![CDATA[-4.5
--6.5
+  <testcase name="createBoardRatingTest" classname="TestClass" time="0.08"/>
+  <system-out><![CDATA[col: 8
+row: 8
+col: 7
+row: 8
+col: 6
+row: 8
+col: 5
+row: 8
+col: 4
+row: 8
+col: 3
+row: 8
+col: 2
+row: 8
+col: 1
+row: 8
+
+col: 1
+row: 1
+col: 2
+row: 1
+col: 3
+row: 1
+col: 4
+row: 1
+col: 5
+row: 1
+col: 6
+row: 1
+col: 7
+row: 1
+col: 8
+row: 1
+-2.0
+-1.5
 -0.5
-1.5
-0.0
--10.0
+-3.5
+5000.0
+4992.5
 ]]></system-out>
-  <system-err><![CDATA[human1
+  <system-err><![CDATA[whitepawn 1
+whitepawn 2
+whitepawn 3
+whitepawn 4
+whitepawn 5
+whitepawn 6
+whitepawn 7
+whitepawn 8
+blackpawn 1
+blackpawn 2
+blackpawn 3
+blackpawn 4
+blackpawn 5
+blackpawn 6
+blackpawn 7
+blackpawn 8
+human1
 machine1
 ]]></system-err>
 </testsuite>

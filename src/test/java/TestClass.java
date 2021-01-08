@@ -315,7 +315,21 @@ public class TestClass {
         //TODO not working should be -30
 
 
-        BoardImpl board = new BoardImpl(3,Color.WHITE);
+        BoardImpl board = new BoardImpl(3,Color.BLACK);
+        int j = 0;
+        for (Pawn whitePawn : board.whitePawns) {
+            System.err.println("whitepawn "+ ++j);
+            System.out.println("col: "+whitePawn.getColumn());
+            System.out.println("row: "+whitePawn.getRow());
+        }
+        System.out.println();
+        j = 0;
+        for (Pawn blackPawn : board.blackPawns) {
+            System.err.println("blackpawn "+ ++j);
+            System.out.println("col: "+blackPawn.getColumn());
+            System.out.println("row: "+blackPawn.getRow());
+        }
+
         board.whitePawns.clear();
         board.blackPawns.clear();
 

@@ -64,15 +64,18 @@ public class BoardImpl implements Board, Cloneable {
      */
     private void createInitialPawnPositions() {
         //TODO: Defensiv: sind die listen leer?
+        int j = SIZE;
         if (human.getColor() == Color.BLACK) {
             for (int i = 1; i < SIZE + 1; i++) {
                 blackPawns.add(new Pawn(i, 1));
-                whitePawns.add(new Pawn(i, SIZE));
+                whitePawns.add(new Pawn(j, SIZE));
+                j--;
             }
         } else {
             for (int i = 1; i < SIZE + 1; i++) {
-                blackPawns.add(new Pawn(i, SIZE));
+                blackPawns.add(new Pawn(j, SIZE));
                 whitePawns.add(new Pawn(i, 1));
+                j--;
             }
         }
     }
