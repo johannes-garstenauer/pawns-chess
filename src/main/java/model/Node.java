@@ -88,13 +88,6 @@ public class Node //implements Cloneable
         }
 
         // Remove all those machine pawns that are protected by friendly pawns.
-        for (Pawn threatenedMachinePawn : threatenedMachinePawns) {
-            if (board.isPawnProtected(threatenedMachinePawn,
-                    board.getMachineColor())) {
-
-            }
-        }
-
         threatenedMachinePawns.removeIf(threatenedMachinePawn
                 -> board.isPawnProtected(threatenedMachinePawn, board.getMachineColor()));
 
@@ -115,6 +108,8 @@ public class Node //implements Cloneable
 
         int amountOfThreatenedHumanPawns = threatenedHumanPawns.size();
 
+        System.err.println("human"+amountOfThreatenedHumanPawns);
+        System.err.println("machine"+amountOfThreatenedMachinePawns);
         double c = amountOfThreatenedHumanPawns
                 - 1.5 * amountOfThreatenedMachinePawns;
 
@@ -163,30 +158,62 @@ public class Node //implements Cloneable
     //TODO case: spieler muss aussetzen
     public void createSubTree(int level) {
         if (level > 0) {
-
             createChildren(getNextPlayer());
 
             // In case the player has to suspend a move let the other
             // player move.
             if (children.isEmpty()) {
-                if(getNextPlayer() == Player.HUMAN) {
-                    board.setNextPlayer(Player.MACHINE);
-                    createChildren(Player.MACHINE);
-                } else {
-                    board.setNextPlayer(Player.HUMAN);
-                    createChildren(Player.HUMAN);
+
+                if (!board.isGameOver()) {
+                    if (getNextPlayer() == Player.HUMAN) {
+                        board.setNextPlayer(Player.MACHINE);
+                        createChildren(Player.MACHINE);
+                    } else {
+                        board.setNextPlayer(Player.HUMAN);
+                        createChildren(Player.HUMAN);
+                    }
                 }
+            } else {
+
+                // Break recursion if the game is over.
+                return;
             }
 
             for (Node child : children) {
                 child.createSubTree(level - 1);
             }
         }
-
     }
 
     public void setValue() {
 
+        if (children.isEmpty()) {
+
+            // Assign value to leaf.
+            value = createBoardRating();
+        } else {
+
+            for (Node child : children) {
+                if (child.getValue() == Double.MIN_VALUE) {
+                    child.setValue();
+                }
+            }
+
+            //Assign value to root
+            if (depth == 0) {
+               value = getBestMove().getValue();
+            } else {
+
+                // Assign value to inner node.
+                //TODO worst und best vertauscht??
+                if (getNextPlayer() == Player.HUMAN) {
+                    value = createBoardRating() + getWorstMove().getValue();
+                } else {
+                    value = createBoardRating() + getBestMove().getValue();
+                }
+            }
+        }
+        /*
         if (children.isEmpty()) {
 
             // Assign value to leaf node
@@ -207,6 +234,8 @@ public class Node //implements Cloneable
                 value = createBoardRating() + getWorstMove().getValue();
             }
         }
+
+         */
     }
 
     /**
@@ -221,9 +250,11 @@ public class Node //implements Cloneable
         Node temp = null;
 
         // Value of the chosen Node
-        double tempValue = Double.MIN_VALUE;
-        for (Node child: this.children) {
-            if (child.getValue() > tempValue) {
+        double tempValue = Integer.MIN_VALUE;
+        for (Node child: children) {
+            //TODO put this calculation in if clause
+            int doubleComp = Double.compare(child.getValue(), tempValue);
+            if (doubleComp > 0) {
                 temp = child;
                 tempValue = child.getValue();
             }
@@ -244,9 +275,10 @@ public class Node //implements Cloneable
         Node temp = null;
 
         // Value of the chosen Node
-        double tempValue = Double.MIN_VALUE;
+        double tempValue = Integer.MAX_VALUE;
         for (Node child: this.children) {
-            if (child.getValue() < tempValue) {
+            int doubleComp = Double.compare(child.getValue(), tempValue);
+            if (doubleComp < 0) {
                 temp = child;
                 tempValue = child.getValue();
             }

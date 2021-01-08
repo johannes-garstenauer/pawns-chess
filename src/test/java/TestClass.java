@@ -289,11 +289,32 @@ public class TestClass {
     }
 
     @Test
+    public void doubleTest(){
+    }
+    @Test
     public void createBoardRatingTest() {
+/*
+        BoardImpl board = new BoardImpl(1,Color.WHITE);
+        Node node = new Node(board,null,0);
+        node.createSubTree(1);
 
-        //Example for Size = 4
+        node.setValue();
+        System.out.println(node.getValue());
+        */
+ /*
+        BoardImpl board = new BoardImpl(1,Color.WHITE);
+        board.move(3,1,3,3);
+        Node node = new Node(board,null,0);
+        node.createSubTree(1);
 
-        /*
+        node.setValue();
+        System.out.println(node.getValue());
+
+         */
+        //TODO important example
+        //TODO not working should be -30
+
+
         BoardImpl board = new BoardImpl(3,Color.WHITE);
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -313,16 +334,33 @@ public class TestClass {
         board.whitePawns.add(new Pawn(7,1));
         board.whitePawns.add(new Pawn(8,1));
 
-        Node node = new Node(board,null,0);
-        node.createSubTree(3);
-        node.setValue();
-
-        for (Node child: node.children) {
-            System.out.println(child.getValue());
+        for (Pawn whitePawn : board.whitePawns) {
+            whitePawn.hasMoved();
         }
 
-         */
+        for (Pawn blackPawn : board.blackPawns) {
+            blackPawn.hasMoved();
+        }
 
+        for (int i = 5; i < 9; i++) {
+            board.getPawn(i,1,Color.WHITE).hasMoved = false;
+        }
+
+        board.getPawn(1,8,Color.BLACK).hasMoved = false;
+        board.setNextPlayer(Player.MACHINE);
+
+        Node node = new Node(board,null,0);
+        node.createSubTree(3);
+
+        System.out.println(node.children.get(0).createBoardRating());
+       // node.setValue();
+
+        //System.out.println(node.getValue());
+
+
+
+
+/*
         //Example for Size = 4
         BoardImpl board = new BoardImpl(1,Color.WHITE);
         board.whitePawns.clear();
@@ -338,6 +376,8 @@ public class TestClass {
 
         Node node = new Node(board,null,2);
         System.out.println(node.createBoardRating());
+
+ */
 
         /*
         BoardImpl board = new BoardImpl(0, null);

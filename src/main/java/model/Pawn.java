@@ -4,7 +4,7 @@ public class Pawn implements Cloneable{
 
     private int column;
     private int row;
-    private boolean hasMoved = false;
+    public boolean hasMoved = false;
 
     public Pawn(int column, int row) throws IllegalArgumentException {
         if (column >= 0 && column <= Board.SIZE && row >= 0

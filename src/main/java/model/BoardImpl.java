@@ -390,7 +390,7 @@ public class BoardImpl implements Board, Cloneable {
         BoardImpl tempBoard = (BoardImpl) this.clone();
 
         List<Pawn> threatenedPawns = new ArrayList<>();
-
+/*
         // Diagonal left attack possible.
         if (getSlot(pawn.getColumn() - 1, pawn.getRow() + 1)
                 == hostileColor) {
@@ -403,6 +403,63 @@ public class BoardImpl implements Board, Cloneable {
                 == hostileColor) {
             threatenedPawns.add(getPawn(pawn.getColumn() + 1, pawn.getRow() + 1,
                     hostileColor));
+        }
+
+ */
+
+        Color pawnColor = getSlot(pawn.getColumn(), pawn.getRow());
+
+        if (pawnColor == getHumanColor()) {
+            // Pawn is facing north on the board.
+
+            // Add to list if diagonal left attack possible.
+            if (getSlot(pawn.getColumn() - 1, pawn.getRow() + 1)
+                    == hostileColor) {
+                threatenedPawns.add(getPawn(pawn.getColumn() - 1, pawn.getRow() + 1,
+                        hostileColor));
+            }
+
+            // Add to list if diagonal right attack possible.
+            if (getSlot(pawn.getColumn() + 1, pawn.getRow() + 1)
+                    == hostileColor) {
+                threatenedPawns.add(getPawn(pawn.getColumn() + 1, pawn.getRow() + 1,
+                        hostileColor));
+            }
+
+            /*
+            // Checks if diagonally behind are friendly pawns.
+            return getPawn(pawn.getColumn() - 1, pawn.getRow() - 1
+                    , pawnColor) != null || getPawn(pawn.getColumn() + 1,
+                    pawn.getRow() - 1, pawnColor) != null;
+
+             */
+        } else {
+            // Pawn is facing south on the board.
+
+            // Add to list if diagonal left attack possible.
+            if (getSlot(pawn.getColumn() - 1, pawn.getRow() - 1)
+                    == hostileColor) {
+                threatenedPawns.add(getPawn(pawn.getColumn() - 1,
+                        pawn.getRow() - 1,
+                        hostileColor));
+            }
+
+            // Add to list if diagonal right attack possible.
+            if (getSlot(pawn.getColumn() + 1, pawn.getRow() - 1)
+                    == hostileColor) {
+                threatenedPawns.add(getPawn(pawn.getColumn() + 1,
+                        pawn.getRow() - 1,
+                        hostileColor));
+            }
+
+/*
+            // Checks if diagonally in front (from the perspective of the
+            // player) are friendly pawns.
+            return getPawn(pawn.getColumn() - 1, pawn.getRow() + 1
+                    , pawnColor) != null || getPawn(pawn.getColumn() + 1,
+                    pawn.getRow() + 1, pawnColor) != null;
+
+ */
         }
 
 
