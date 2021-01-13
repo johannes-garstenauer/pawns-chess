@@ -1,4 +1,6 @@
-package model;
+package model.chessboard;
+
+import model.player.Player;
 
 /**
  * Interface for a Pawns Chess game, a lite variant of chess. The only tiles are

@@ -1,4 +1,6 @@
-package model;
+package model.player;
+
+import model.chessboard.Color;
 
 public enum Player {
     //TODO: JAVADOC

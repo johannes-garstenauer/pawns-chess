@@ -1,4 +1,4 @@
-package model;
+package model.chessboard;
 
 public enum Move {
 

@@ -1,4 +1,8 @@
-package model;
+package model.chessboard;
+
+import model.lookAheadTree.LookAheadTree;
+import model.player.Player;
+import model.utilities.Tupel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,11 +45,7 @@ public class BoardImpl implements Board, Cloneable {
                 nextPlayer = machine;
             }
         }
-
         createInitialPawnPositions();
-
-        //this.lookAheadTree = new LookAheadTree(this);
-        //lookAheadTree.getRoot().constructTree(level);
     }
 
     @Override
@@ -342,11 +342,8 @@ public class BoardImpl implements Board, Cloneable {
 
         LookAheadTree lookAheadTree = new LookAheadTree(this);
 
-        // Construct new LookAheadTree
-        lookAheadTree.constructTree(machine.getLevel());
-
-        //nextPlayer = human;
-        return null;
+        newBoard.nextPlayer = human;
+        return lookAheadTree.getBestMove();
     }
 
 
@@ -374,7 +371,7 @@ public class BoardImpl implements Board, Cloneable {
         return true;
     }
 
-    Color getMachineColor() {
+    public Color getMachineColor() {
         return machine.getColor();
     }
 
@@ -392,6 +389,7 @@ public class BoardImpl implements Board, Cloneable {
                                                Color hostileColor) {
         BoardImpl tempBoard = (BoardImpl) this.clone();
 
+        //TODO hat diese Liste dann nicht immer nur ein Element???!
         List<Pawn> threatenedPawns = new ArrayList<>();
 /*
         // Diagonal left attack possible.

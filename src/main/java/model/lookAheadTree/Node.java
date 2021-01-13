@@ -1,7 +1,13 @@
-package model;
+package model.lookAheadTree;
 
-import java.util.ArrayList;
-import java.util.List;
+import model.chessboard.BoardImpl;
+import model.chessboard.Color;
+import model.chessboard.Move;
+import model.chessboard.Pawn;
+import model.player.Player;
+import model.utilities.Tupel;
+
+import java.util.*;
 
 public class Node //implements Cloneable
 {
@@ -11,12 +17,16 @@ public class Node //implements Cloneable
     int depth;
 
     //TODO
-    double value = Double.MIN_VALUE;
+    double value = Integer.MIN_VALUE;
 
     public Node(BoardImpl board, Node parent, int depth) {
         this.board = board;
         this.parent = parent;
         this.depth = depth;
+    }
+
+    public BoardImpl getBoard() {
+        return board;
     }
 
     public double getValue() {
@@ -79,21 +89,6 @@ public class Node //implements Cloneable
 
         double d = machinePawnsMovedFactor - 1.5 * humanPawnsMovedFactor;
 
-        List<Pawn> threatenedMachinePawns = new ArrayList<>();
-
-        // Create list of all machine pawns that are threatened by human pawns.
-        for (Pawn humanPawn : humanPawns) {
-            threatenedMachinePawns.addAll(board.determineThreatenedPawns(humanPawn,
-                    board.getMachineColor()));
-        }
-
-        // Remove all those machine pawns that are protected by friendly pawns.
-        threatenedMachinePawns.removeIf(threatenedMachinePawn
-                -> board.isPawnProtected(threatenedMachinePawn, board.getMachineColor()));
-
-        int amountOfThreatenedMachinePawns = threatenedMachinePawns.size();
-
-
         List<Pawn> threatenedHumanPawns = new ArrayList<>();
 
         // Create list of all human pawns that are threatened by machine pawns.
@@ -106,10 +101,31 @@ public class Node //implements Cloneable
         threatenedHumanPawns.removeIf(threatenedHumanPawn
                 -> board.isPawnProtected(threatenedHumanPawn, board.getHumanColor()));
 
+        // Remove duplicates.
+        // Remove duplicates.
+        threatenedHumanPawns =
+                new ArrayList<>(new HashSet<>(threatenedHumanPawns));
+
         int amountOfThreatenedHumanPawns = threatenedHumanPawns.size();
 
-        System.err.println("human"+amountOfThreatenedHumanPawns);
-        System.err.println("machine"+amountOfThreatenedMachinePawns);
+        List<Pawn> threatenedMachinePawns = new ArrayList<>();
+
+        // Create list of all machine pawns that are threatened by human pawns.
+        for (Pawn humanPawn : humanPawns) {
+            threatenedMachinePawns.addAll(board.determineThreatenedPawns(humanPawn,
+                    board.getMachineColor()));
+        }
+
+        // Remove all those machine pawns that are protected by friendly pawns.
+        threatenedMachinePawns.removeIf(threatenedMachinePawn
+                -> board.isPawnProtected(threatenedMachinePawn, board.getMachineColor()));
+
+        // Remove duplicates.
+        threatenedMachinePawns =
+                new ArrayList<>(new HashSet<>(threatenedMachinePawns));
+
+        int amountOfThreatenedMachinePawns = threatenedMachinePawns.size();
+
         double c = amountOfThreatenedHumanPawns
                 - 1.5 * amountOfThreatenedMachinePawns;
 
@@ -133,25 +149,41 @@ public class Node //implements Cloneable
         double v;
         try {
 
-            // Player which might have won by playing the last move.
-            //Player currentPlayer = parent.getNextPlayer();
+            if (depth != 0 && board.isGameOver()
+            ) {
 
-            if (board.getWinner() == Player.HUMAN) {
-                v = -1.5 * 5000/depth;
+                // Player which might have won by playing the last move.
+                if (board.getWinner() == Player.HUMAN) {
+
+                    // If the human has won.
+                    v = -1.5 * 5000 / depth;
+                } else if (board.getWinner() == Player.MACHINE) {
+
+                    // If the machine has won.
+                    v = 5000 / depth;
+                } else {
+
+                    // If there is a draw.
+                    v = 0;
+                }
             } else {
-                //TODO: what
-                v = 5000 / depth;
+
+                // Victory value for root.
+                v = 0;
             }
 
         } catch (IllegalCallerException e) {
             v = 0;
         }
-
+/*
+        System.out.println();
         System.out.println(n);
         System.out.println(d);
         System.out.println(c);
         System.out.println(i);
         System.out.println(v);
+        System.err.println("sum: " + (n + d + c + i + v));
+ */
         return n + d + c + i + v;
     }
 
@@ -172,11 +204,11 @@ public class Node //implements Cloneable
                         board.setNextPlayer(Player.HUMAN);
                         createChildren(Player.HUMAN);
                     }
-                }
-            } else {
+                } else {
 
-                // Break recursion if the game is over.
-                return;
+                    // Break recursion if the game is over.
+                    return;
+                }
             }
 
             for (Node child : children) {
@@ -193,26 +225,30 @@ public class Node //implements Cloneable
             value = createBoardRating();
         } else {
 
+            // Assign values to children.
             for (Node child : children) {
-                if (child.getValue() == Double.MIN_VALUE) {
+                if (child.getValue() == Integer.MIN_VALUE) {
                     child.setValue();
                 }
             }
 
-            //Assign value to root
+            /*
+            // Assign value to root
+            -> eigentlich braucht root keinen Value
             if (depth == 0) {
                value = getBestMove().getValue();
             } else {
+             */
 
-                // Assign value to inner node.
-                //TODO worst und best vertauscht??
-                if (getNextPlayer() == Player.HUMAN) {
-                    value = createBoardRating() + getWorstMove().getValue();
-                } else {
-                    value = createBoardRating() + getBestMove().getValue();
-                }
+            // Assign value to inner node.
+            //TODO worst und best vertauscht??
+            if (getNextPlayer() == Player.HUMAN) {
+                value = createBoardRating() + getWorstMove().getValue();
+            } else {
+                value = createBoardRating() + getBestMove().getValue();
             }
         }
+
         /*
         if (children.isEmpty()) {
 
@@ -244,14 +280,14 @@ public class Node //implements Cloneable
      *
      * @return
      */
-    public Node getBestMove(){
+    public Node getBestMove() {
 
         // Temporarily chosen Node representing the best Move
         Node temp = null;
 
         // Value of the chosen Node
         double tempValue = Integer.MIN_VALUE;
-        for (Node child: children) {
+        for (Node child : children) {
             //TODO put this calculation in if clause
             int doubleComp = Double.compare(child.getValue(), tempValue);
             if (doubleComp > 0) {
@@ -263,20 +299,20 @@ public class Node //implements Cloneable
         if (temp == null) {
             //TODO: right exc??
             throw new IllegalCallerException("This tree has no children!");
-        } else  {
+        } else {
             return temp;
         }
     }
 
     //TODO: combine with getBestMove
-    public Node getWorstMove(){
+    public Node getWorstMove() {
 
         // Temporarily chosen Node representing the best Move
         Node temp = null;
 
         // Value of the chosen Node
         double tempValue = Integer.MAX_VALUE;
-        for (Node child: this.children) {
+        for (Node child : this.children) {
             int doubleComp = Double.compare(child.getValue(), tempValue);
             if (doubleComp < 0) {
                 temp = child;
@@ -287,7 +323,7 @@ public class Node //implements Cloneable
         if (temp == null) {
             //TODO: right exc??
             throw new IllegalCallerException("This tree has no children!");
-        } else  {
+        } else {
             return temp;
         }
     }
