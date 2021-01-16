@@ -36,4 +36,26 @@ public enum Player {
     public int getLevel() {
         return level;
     }
+
+    /**
+     * Determines the player opposite to the player which was given.
+     *
+     * @param player The given player. Has to be either {@code Player.HUMAN} or
+     *              {@code Color.MACHINE}.
+     * @return The opposite player of the given player, if possible.
+     * @throws IllegalArgumentException Might be thrown if the given player
+     *                                  does not have an opposite player.
+     */
+    public static Player getOppositePlayer(Player player) throws IllegalArgumentException {
+        if (player == null) {
+            throw new IllegalArgumentException("Cannot determine the opposite"
+                    + " of that color.");
+        } else {
+            if (player == Player.HUMAN) {
+                return Player.MACHINE;
+            } else {
+                return Player.HUMAN;
+            }
+        }
+    }
 }

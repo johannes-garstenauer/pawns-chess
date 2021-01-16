@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-13T09:20:55" hostname="LAPTOP-GS97P0F9" time="0.282">
+<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-13T10:49:01" hostname="LAPTOP-GS97P0F9" time="0.224">
   <properties/>
-  <testcase name="createBoardRatingTest" classname="TestClass" time="0.282"/>
+  <testcase name="createBoardRatingTest" classname="TestClass" time="0.224"/>
   <system-out><![CDATA[done
 -30.0
 

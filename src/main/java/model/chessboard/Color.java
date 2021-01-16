@@ -17,5 +17,27 @@ public enum Color {
     /**
      * Has no color.
      */
-    NONE
+    NONE;
+
+    //TODO funzt das at code linken im java doc?
+
+    /**
+     * Determines the color opposite to the color which was given.
+     *
+     * @param color The given color. Has to be either {@code Color.WHITE} or
+     *              {@code Color.BLACK} or {@code Color.NONE}.
+     * @return  The opposite color of the given color, if possible. If the
+     *          color is {@code Color.NONE} the same color will be returned.
+     */
+    public static Color getOppositeColor(Color color) {
+        if (color == Color.NONE) {
+            return Color.NONE;
+        } else {
+            if (color == Color.WHITE) {
+                return Color.BLACK;
+            } else {
+                return Color.WHITE;
+            }
+        }
+    }
 }

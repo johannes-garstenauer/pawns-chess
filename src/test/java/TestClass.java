@@ -1,5 +1,5 @@
 import model.chessboard.Board;
-import model.chessboard.BoardImpl;
+import model.chessboard.ChessBoard;
 import model.chessboard.Color;
 import model.chessboard.Pawn;
 import model.lookAheadTree.Node;
@@ -14,7 +14,7 @@ public class TestClass {
     @Test
     public void BoardConstructorTest() {
 
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         System.out.println(board.getHumanColor());
         assert (board.getHumanColor() == Color.WHITE);
@@ -38,30 +38,30 @@ public class TestClass {
         }
 
         try {
-            BoardImpl board2 = new BoardImpl(5, Color.WHITE);
+            ChessBoard board2 = new ChessBoard(5, Color.WHITE);
         } catch (IllegalArgumentException ex) {
             System.out.println("board2 caught");
         }
 
         try {
-            BoardImpl board3 = new BoardImpl(2, null);
+            ChessBoard board3 = new ChessBoard(2, null);
         } catch (IllegalArgumentException ex) {
             System.out.println("board3 caught");
         }
 
         try {
-            BoardImpl board4 = new BoardImpl(-3, Color.WHITE);
+            ChessBoard board4 = new ChessBoard(-3, Color.WHITE);
         } catch (IllegalArgumentException ex) {
             System.out.println("board5 caught");
         }
 
 
-        BoardImpl board5 = new BoardImpl(2, Color.BLACK);
+        ChessBoard board5 = new ChessBoard(2, Color.BLACK);
         assert (board5.getHumanColor() == Color.BLACK);
         assert (board5.machine.getColor() == Color.WHITE);
         assert (board5.machine.level == 2);
 
-        BoardImpl board6 = new BoardImpl(3, Color.WHITE);
+        ChessBoard board6 = new ChessBoard(3, Color.WHITE);
         assert (board6.getHumanColor() == Color.WHITE);
         assert (board6.machine.getColor() == Color.BLACK);
         assert (board6.machine.level == 3);
@@ -70,7 +70,7 @@ public class TestClass {
     @Test
     public void MoveTest() {
 
-        BoardImpl board = new BoardImpl(1, Color.BLACK);
+        ChessBoard board = new ChessBoard(1, Color.BLACK);
 
         int i = 0;
         System.err.println("blackpawns");
@@ -82,13 +82,13 @@ public class TestClass {
 
         board.nextPlayer = Player.HUMAN;
 
-        board = (BoardImpl) board.move(1, 1, 1, 2);
+        board = (ChessBoard) board.move(1, 1, 1, 2);
 
         assert (board != null);
         /*
         board.whitePawns.add(new Pawn(1, 3));
 
-        BoardImpl newBoard = (BoardImpl) board.move(1, 3, 1, 5);
+        ChessBoard newBoard = (ChessBoard) board.move(1, 3, 1, 5);
 
         int i = 0;
         System.err.println("whitepawns");
@@ -127,7 +127,7 @@ public class TestClass {
 
     @Test
     public void NumberOfTilesTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.whitePawns.add(new Pawn(1, 7));
         board.move(1, 7, 2, 8);
@@ -138,7 +138,7 @@ public class TestClass {
 
     @Test
     public void getSlotTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.whitePawns.add(new Pawn(1, 7));
         board.move(1, 7, 2, 8);
@@ -150,11 +150,11 @@ public class TestClass {
 
     @Test
     public void cloneTest() {
-        BoardImpl board = new BoardImpl(2, Color.BLACK);
+        ChessBoard board = new ChessBoard(2, Color.BLACK);
 
         assert (board.getHumanColor() == Color.BLACK);
 
-        BoardImpl clone = (BoardImpl) board.clone();
+        ChessBoard clone = (ChessBoard) board.clone();
 
         board.move(1, 1, 1, 3);
         board.move(2, 1, 2, 3);
@@ -196,7 +196,7 @@ public class TestClass {
 
     @Test
     public void helperTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.move(1, 1, 1, 2);
         board.move(2, 1, 2, 2);
@@ -210,7 +210,7 @@ public class TestClass {
 
     @Test
     public void getPawnTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         Pawn pawn = board.getPawn(1, 1, Color.WHITE);
 
@@ -230,7 +230,7 @@ public class TestClass {
 
     @Test
     public void determineThreatenedTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.blackPawns.add(new Pawn(1, 2));
         board.blackPawns.add(new Pawn(3, 2));
@@ -246,7 +246,7 @@ public class TestClass {
 
     @Test
     public void isPawnProtectedTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.whitePawns.add(new Pawn(1, 2));
         board.blackPawns.add(new Pawn(4, 4));
@@ -273,7 +273,7 @@ public class TestClass {
 
     @Test
     public void isPawnIsolatedTest() {
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.move(1, 1, 1, 2);
         assert (!board.isPawnIsolated(board.getPawn(1, 2, Color.WHITE)
@@ -296,7 +296,7 @@ public class TestClass {
     @Test
     public void createBoardRatingTest() {
 /*
-        BoardImpl board = new BoardImpl(1,Color.WHITE);
+        ChessBoard board = new ChessBoard(1,Color.WHITE);
         Node node = new Node(board,null,0);
         node.createSubTree(1);
 
@@ -304,7 +304,7 @@ public class TestClass {
         System.out.println(node.getValue());
         */
  /*
-        BoardImpl board = new BoardImpl(1,Color.WHITE);
+        ChessBoard board = new ChessBoard(1,Color.WHITE);
         board.move(3,1,3,3);
         Node node = new Node(board,null,0);
         node.createSubTree(1);
@@ -316,7 +316,7 @@ public class TestClass {
 //TODO selbst überschauabres bsp erstelllen und durchrechnen
 
 
-        BoardImpl board = new BoardImpl(3,Color.WHITE);
+        ChessBoard board = new ChessBoard(3,Color.WHITE);
 
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -386,7 +386,7 @@ public class TestClass {
 
 /*
         //Example for Size = 4
-        BoardImpl board = new BoardImpl(1,Color.WHITE);
+        ChessBoard board = new ChessBoard(1,Color.WHITE);
         board.whitePawns.clear();
         board.blackPawns.clear();
 
@@ -404,7 +404,7 @@ public class TestClass {
  */
 
         /*
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
 
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -423,7 +423,7 @@ public class TestClass {
     @Test
     public void isGameOverTest() {
         //Example for Size = 4
-        BoardImpl board = new BoardImpl(0, null);
+        ChessBoard board = new ChessBoard(0, null);
         assert (!board.isGameOver());
 
         board.whitePawns.clear();
@@ -459,7 +459,7 @@ public class TestClass {
     public void getWinnerTest() {
 
         //Test for size = 4
-        BoardImpl board = new BoardImpl(3, Color.WHITE);
+        ChessBoard board = new ChessBoard(3, Color.WHITE);
 
         board.whitePawns.clear();
         board.blackPawns.clear();
@@ -484,11 +484,11 @@ public class TestClass {
 
     @Test
     public void getNextPlayerTest() {
-        BoardImpl board = new BoardImpl(2, Color.WHITE);
+        ChessBoard board = new ChessBoard(2, Color.WHITE);
         assert (board.getNextPlayer() == Player.HUMAN);
 
         /*
-        BoardImpl board2 = new BoardImpl(2, Color.BLACK);
+        ChessBoard board2 = new ChessBoard(2, Color.BLACK);
         assert (board2.getNextPlayer() == Player.MACHINE);
 
          */
@@ -508,7 +508,7 @@ public class TestClass {
             System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
         }
 
-        board = (BoardImpl) board.move(1, 1, 1, 2);
+        board = (ChessBoard) board.move(1, 1, 1, 2);
 
         System.out.println(board.getNextPlayer());
         assert (board.getNextPlayer() == Player.MACHINE);
@@ -517,7 +517,7 @@ public class TestClass {
     @Test
     public void newMoveTest() {
         //FOR SIZE 8
-        BoardImpl board = new BoardImpl(2,Color.WHITE);
+        ChessBoard board = new ChessBoard(2,Color.WHITE);
         board.whitePawns.clear();
         board.blackPawns.clear();
 
@@ -526,13 +526,13 @@ public class TestClass {
         Board res = board.move(1,1,1,3);
         assert (res != null);
 
-        ((BoardImpl) res).setNextPlayer(Player.HUMAN);
+        ((ChessBoard) res).setNextPlayer(Player.HUMAN);
         res = res.move(1,3,1,5);
         assert (res == null);
 
 
 /*
-        BoardImpl board = new BoardImpl(2,Color.WHITE);
+        ChessBoard board = new ChessBoard(2,Color.WHITE);
         board.whitePawns.clear();
         board.blackPawns.clear();
 
@@ -597,21 +597,21 @@ public class TestClass {
  */
 
         /*
-        BoardImpl whiteBoard = new BoardImpl(2,Color.WHITE);
+        ChessBoard whiteBoard = new ChessBoard(2,Color.WHITE);
 
-        BoardImpl test1 = (BoardImpl) whiteBoard.move(1,1,1,2);
+        ChessBoard test1 = (ChessBoard) whiteBoard.move(1,1,1,2);
         assert (test1 != null);
 
         test1.nextPlayer = Player.HUMAN;
-        BoardImpl test2 = (BoardImpl) test1.move(2,1,2,3);
+        ChessBoard test2 = (ChessBoard) test1.move(2,1,2,3);
         assert (test2 != null);
 
         test2.nextPlayer = Player.HUMAN;
-        BoardImpl test3 = (BoardImpl) test2.move(2,3,2,4);
+        ChessBoard test3 = (ChessBoard) test2.move(2,3,2,4);
         assert (test3 == null);
 
         test2.nextPlayer = Player.HUMAN;
-        BoardImpl test4 = (BoardImpl) test2.move(2,3,3,4);
+        ChessBoard test4 = (ChessBoard) test2.move(2,3,3,4);
         assert (test4 != null);
 
         int i = 0;
@@ -636,13 +636,13 @@ public class TestClass {
         assert (test1.getPawn(1,3, Color.WHITE) != null);
         test1.nextPlayer = Player.HUMAN;
         test1.blackPawns.add(new Pawn(2,4));
-        BoardImpl test4 = (BoardImpl) test1.move(1,3,2,4);
+        ChessBoard test4 = (ChessBoard) test1.move(1,3,2,4);
         assert (test4 != null);
         */
 
         /*
         // For machine
-        BoardImpl blackBoard = new BoardImpl(2, Color.WHITE);
+        ChessBoard blackBoard = new ChessBoard(2, Color.WHITE);
 
         blackBoard.makeMove(blackBoard.getPawn(1, 4, Color.BLACK),
                 new Tupel(true, null), 1, 3);
@@ -683,7 +683,7 @@ public class TestClass {
     @Test
     public void createChildrenTest() {
 
-        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null, 0);
+        Node node1 = new Node(new ChessBoard(2, Color.WHITE), null, 0);
         node1.board.blackPawns.clear();
         node1.board.whitePawns.clear();
 
@@ -720,7 +720,7 @@ public class TestClass {
             }
         }
     /*
-        Node node2 = new Node(new BoardImpl(2,Color.WHITE),null);
+        Node node2 = new Node(new ChessBoard(2,Color.WHITE),null);
         node2.createChildren(Player.HUMAN);
 
     */
@@ -730,7 +730,7 @@ public class TestClass {
     public void createSubTreeTest() {
         //For SIZE = 4
 
-        Node node1 = new Node(new BoardImpl(2, Color.WHITE), null,0);
+        Node node1 = new Node(new ChessBoard(2, Color.WHITE), null,0);
         node1.board.blackPawns.clear();
         node1.board.whitePawns.clear();
 
@@ -813,12 +813,12 @@ public class TestClass {
 
     @Test
     public void scoreTestOwnExample() {
-        BoardImpl board = new BoardImpl(2, Color.WHITE);
+        ChessBoard board = new ChessBoard(2, Color.WHITE);
 
         board.blackPawns.remove(board.getPawn(1,4,Color.BLACK));
         board.whitePawns.remove(board.getPawn(3,1,Color.WHITE));
 
-        board = (BoardImpl) board.move(1,1,1,2);
+        board = (ChessBoard) board.move(1,1,1,2);
 
         Node node = new Node(board,null,0);
 
@@ -851,12 +851,12 @@ public class TestClass {
 
     @Test
     public void specialTest() {
-        BoardImpl board = new BoardImpl(2, Color.WHITE);
+        ChessBoard board = new ChessBoard(2, Color.WHITE);
 
         board.blackPawns.remove(board.getPawn(1,4,Color.BLACK));
         board.whitePawns.remove(board.getPawn(3,1,Color.WHITE));
 
-        board = (BoardImpl) board.move(1,1,1,3);
+        board = (ChessBoard) board.move(1,1,1,3);
 
         //board.whitePawns.remove(board.getPawn(2,1,Color.WHITE));
         //board.whitePawns.add(new Pawn(2,3));

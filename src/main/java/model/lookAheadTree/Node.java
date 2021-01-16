@@ -1,17 +1,17 @@
 package model.lookAheadTree;
 
-import model.chessboard.BoardImpl;
+import model.chessboard.ChessBoard;
 import model.chessboard.Color;
-import model.chessboard.Move;
+import model.chessboard.Direction;
 import model.chessboard.Pawn;
 import model.player.Player;
-import model.utilities.Tupel;
+import model.Tuple;
 
 import java.util.*;
 
 public class Node //implements Cloneable
 {
-    public BoardImpl board;
+    public ChessBoard board;
     public Node parent;
     public List<Node> children = new ArrayList<>();
     int depth;
@@ -19,13 +19,13 @@ public class Node //implements Cloneable
     //TODO
     double value = Integer.MIN_VALUE;
 
-    public Node(BoardImpl board, Node parent, int depth) {
+    public Node(ChessBoard board, Node parent, int depth) {
         this.board = board;
         this.parent = parent;
         this.depth = depth;
     }
 
-    public BoardImpl getBoard() {
+    public ChessBoard getBoard() {
         return board;
     }
 
@@ -33,159 +33,6 @@ public class Node //implements Cloneable
         return value;
     }
 
-    public double createBoardRating() {
-
-        // List of humans pawns.
-        List<Pawn> humanPawns;
-
-        // List of machines pawns.
-        List<Pawn> machinePawns;
-
-        if (board.getHumanColor() == Color.WHITE) {
-            humanPawns = board.whitePawns;
-            machinePawns = board.blackPawns;
-        } else {
-            humanPawns = board.blackPawns;
-            machinePawns = board.whitePawns;
-        }
-
-        double n = machinePawns.size() - 1.5 * humanPawns.size();
-
-        int machinePawnsMovedFactor = 0;
-        for (int i = 0; i < board.SIZE; i++) {
-            if (board.getMachineColor() == Color.WHITE) {
-
-                //If pawns move down to up
-                machinePawnsMovedFactor =
-                        machinePawnsMovedFactor + board.amountOfPawnsInRow(i + 1,
-                                machinePawns) * i;
-            } else {
-
-                //If pawns move up to down
-                machinePawnsMovedFactor =
-                        machinePawnsMovedFactor +
-                                board.amountOfPawnsInRow((board.SIZE - 1) - i + 1,
-                                        machinePawns) * i;
-            }
-        }
-
-        int humanPawnsMovedFactor = 0;
-        for (int i = 0; i < board.SIZE; i++) {
-            if (board.getHumanColor() == Color.WHITE) {
-
-                //If pawns move down to up
-                humanPawnsMovedFactor =
-                        humanPawnsMovedFactor + board.amountOfPawnsInRow(i + 1,
-                                humanPawns) * i;
-            } else {
-
-                //If pawns move up to down
-                humanPawnsMovedFactor =
-                        humanPawnsMovedFactor +
-                                board.amountOfPawnsInRow((board.SIZE - 1) - i + 1,
-                                        humanPawns) * i;
-            }
-        }
-
-        double d = machinePawnsMovedFactor - 1.5 * humanPawnsMovedFactor;
-
-        List<Pawn> threatenedHumanPawns = new ArrayList<>();
-
-        // Create list of all human pawns that are threatened by machine pawns.
-        for (Pawn machinePawn : machinePawns) {
-            threatenedHumanPawns.addAll(board.determineThreatenedPawns(machinePawn,
-                    board.getHumanColor()));
-        }
-
-        // Remove all those human pawns that are protected by friendly pawns.
-        threatenedHumanPawns.removeIf(threatenedHumanPawn
-                -> board.isPawnProtected(threatenedHumanPawn, board.getHumanColor()));
-
-        // Remove duplicates.
-        // Remove duplicates.
-        threatenedHumanPawns =
-                new ArrayList<>(new HashSet<>(threatenedHumanPawns));
-
-        int amountOfThreatenedHumanPawns = threatenedHumanPawns.size();
-
-        List<Pawn> threatenedMachinePawns = new ArrayList<>();
-
-        // Create list of all machine pawns that are threatened by human pawns.
-        for (Pawn humanPawn : humanPawns) {
-            threatenedMachinePawns.addAll(board.determineThreatenedPawns(humanPawn,
-                    board.getMachineColor()));
-        }
-
-        // Remove all those machine pawns that are protected by friendly pawns.
-        threatenedMachinePawns.removeIf(threatenedMachinePawn
-                -> board.isPawnProtected(threatenedMachinePawn, board.getMachineColor()));
-
-        // Remove duplicates.
-        threatenedMachinePawns =
-                new ArrayList<>(new HashSet<>(threatenedMachinePawns));
-
-        int amountOfThreatenedMachinePawns = threatenedMachinePawns.size();
-
-        double c = amountOfThreatenedHumanPawns
-                - 1.5 * amountOfThreatenedMachinePawns;
-
-        int amountOfIsolatedMachinePawns = 0;
-        for (Pawn machinePawn : machinePawns) {
-            if (board.isPawnIsolated(machinePawn, board.getMachineColor())) {
-                amountOfIsolatedMachinePawns++;
-            }
-        }
-
-        int amountOfIsolatedHumanPawns = 0;
-        for (Pawn humanPawn : humanPawns) {
-            if (board.isPawnIsolated(humanPawn, board.getHumanColor())) {
-                amountOfIsolatedHumanPawns++;
-            }
-        }
-
-        double i =
-                amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
-
-        double v;
-        try {
-
-            if (depth != 0 && board.isGameOver()
-            ) {
-
-                // Player which might have won by playing the last move.
-                if (board.getWinner() == Player.HUMAN) {
-
-                    // If the human has won.
-                    v = -1.5 * 5000 / depth;
-                } else if (board.getWinner() == Player.MACHINE) {
-
-                    // If the machine has won.
-                    v = 5000 / depth;
-                } else {
-
-                    // If there is a draw.
-                    v = 0;
-                }
-            } else {
-
-                // Victory value for root.
-                v = 0;
-            }
-
-        } catch (IllegalCallerException e) {
-            v = 0;
-        }
-/*
-        System.out.println();
-        System.out.println(n);
-        System.out.println(d);
-        System.out.println(c);
-        System.out.println(i);
-        System.out.println(v);
-        System.err.println("sum: " + (n + d + c + i + v));
- */
-        return n + d + c + i + v;
-    }
 
     //TODO case: spieler muss aussetzen
     public void createSubTree(int level) {
@@ -350,22 +197,25 @@ public class Node //implements Cloneable
 
         // Create child nodes for each possible move by each pawn.
         for (Pawn pawn : pawns) {
-            for (Move move : Move.values()) {
+            for (Direction direction : Direction.values()) {
+
                 //Can move at most one column.
                 for (int colTo = pawn.getColumn() - 1; colTo
                         <= pawn.getColumn() + 1; colTo++) {
+
                     //Can move at most two rows.
                     for (int rowTo = pawn.getRow() - 2; rowTo <= pawn.getRow() + 2;
                          rowTo++) {
-                        Tupel temp = board.isLegalMove(move, pawn, colTo,
+                        Tuple temp = board.isLegalMove(direction, pawn, colTo,
                                 rowTo);
+
                         // If the move is legal and an actual movement takes
                         // place.
                         if (temp.getLegalityOfMove()
                                 && (colTo != pawn.getColumn()
                                 || rowTo != pawn.getRow())) {
 
-                            BoardImpl boardClone = (BoardImpl) board.clone();
+                            ChessBoard boardClone = (ChessBoard) board.clone();
                             boardClone.makeMove(boardClone.getPawn(pawn.getColumn(), pawn.getRow(), player.getColor()),
                                     temp, colTo,
                                     rowTo);
