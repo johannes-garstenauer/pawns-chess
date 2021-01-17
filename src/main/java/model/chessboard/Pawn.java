@@ -6,14 +6,15 @@ public class Pawn implements Cloneable{
     private int row;
     public boolean hasMoved = false;
 
+
     public Pawn(int column, int row) throws IllegalArgumentException {
         if (column >= 0 && column <= Board.SIZE && row >= 0
                 && row <= Board.SIZE) {
             this.column = column;
             this.row = row;
         } else {
-            // TODO: wieso muss diese exception bei new aufrufen nicht ge try
-            // catcht werden??
+            //TODO also catch if there already is a pawn at that position??
+            //-> could be complicated
             throw new IllegalArgumentException("The pawns position must be "
                     + "within the board.");
         }

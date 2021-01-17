@@ -11,6 +11,7 @@ import java.util.List;
 
 public class TestClass {
 
+
     @Test
     public void BoardConstructorTest() {
 
@@ -121,9 +122,8 @@ public class TestClass {
             System.out.print("Pawn " + l);
             System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
         }
-
-         */
     }
+
 
     @Test
     public void NumberOfTilesTest() {
@@ -420,6 +420,7 @@ public class TestClass {
         assert (board.createBoardRating() == -8.5);
          */
     }
+
     @Test
     public void isGameOverTest() {
         //Example for Size = 4

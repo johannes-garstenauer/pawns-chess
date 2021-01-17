@@ -19,7 +19,7 @@ public enum Player {
     /**
      *  Returns the tile color of this player.
      *
-     * @return Tile color.
+     * @return The tile color of the player.
      */
     public Color getColor() {
         return color;
@@ -46,7 +46,8 @@ public enum Player {
      * @throws IllegalArgumentException Might be thrown if the given player
      *                                  does not have an opposite player.
      */
-    public static Player getOppositePlayer(Player player) throws IllegalArgumentException {
+    public static Player getOppositePlayer(Player player)
+            throws IllegalArgumentException {
         if (player == null) {
             throw new IllegalArgumentException("Cannot determine the opposite"
                     + " of that color.");

@@ -9,7 +9,7 @@ import model.Tuple;
 
 import java.util.*;
 
-public class Node //implements Cloneable
+public class Node 
 {
     public ChessBoard board;
     public Node parent;
