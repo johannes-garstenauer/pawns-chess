@@ -40,4 +40,12 @@ public enum Color {
             }
         }
     }
+
+    public String toString(){
+        if (this == WHITE) {
+            return "W";
+        } else if (this == BLACK) {
+            return "B";
+        } else return " ";
+    }
 }

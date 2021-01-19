@@ -1,9 +1,8 @@
 package model.chessboard;
 
 import model.exceptions.IllegalMoveException;
-import model.lookAheadTree.LookAheadTree;
+import model.lookAheadTree.Node;
 import model.player.Player;
-import model.Tuple;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -92,7 +91,6 @@ public class ChessBoard implements Board, Cloneable {
     }
 
 
-
     /**
      * Determine the direction and distance of a move.
      *
@@ -126,6 +124,7 @@ public class ChessBoard implements Board, Cloneable {
             if (getPawn(colFrom, rowFrom) == null) {
                 throw new IllegalArgumentException("Moves must be executed on "
                         + "existing Pawns.");
+                //TODO nicht nextplayer sondern currentplayer??
             } else if (getNextPlayer() == Player.HUMAN && !(rowDist > 0)) {
                 throw new IllegalArgumentException("This move has an illegal "
                         + "direction.");
@@ -282,7 +281,8 @@ public class ChessBoard implements Board, Cloneable {
     public void makeMove(Pawn pawn, int colTo, int rowTo) {
 
         //TODO: throw exception? maybe IllegalMoveException?
-        if (isLegalMove(pawn, colTo, rowTo)) {
+        if (isLegalMove(pawn, colTo, rowTo) //&& !isGameOver()
+         ) {
 
             // Determine whether a hostile pawn is at the finish position of
             // the move.
@@ -299,26 +299,6 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
-    @Override
-    public Board machineMove() {
-
-        if (nextPlayer != Player.MACHINE) {
-            throw new IllegalMoveException("It is not the machine player's "
-                    + "turn.");
-        } else if (isGameOver()) {
-            throw new IllegalMoveException("No more moves can be made as this"
-                    + " game is already finished.");
-        } else {
-
-            //Board on which the move is executed.
-            ChessBoard newBoard = (ChessBoard) this.clone();
-
-            LookAheadTree lookAheadTree = new LookAheadTree(newBoard);
-
-            newBoard.setNextPlayer();
-            return lookAheadTree.getBestMove();
-        }
-    }
 
     //TODO in hilfsmethoden aufteilen
     //TODO defensiv auf depth reagieren
@@ -613,42 +593,6 @@ public class ChessBoard implements Board, Cloneable {
         return amount;
     }
 
-    //TODO not DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //TODO: praktisch nur eine code duplikation von Node.createChildren
-    public boolean hasToSuspendMove(Player player) {
-
-        // List of players pawns
-        List<Pawn> playerPawns = getPawnsList(player.getColor());
-
-        // Determine whether any pawn from the players pawns could make a legal
-        // move.
-        for (Pawn pawn : playerPawns) {
-            for (Direction direction : Direction.values()) {
-                //Can move at most one column.
-                for (int colTo = pawn.getColumn() - 1; colTo
-                        <= pawn.getColumn() + 1; colTo++) {
-                    //Can move at most two rows.
-                    for (int rowTo = pawn.getRow() - 2; rowTo <= pawn.getRow() + 2;
-                         rowTo++) {
-
-                        Tuple temp = this.isLegalMove(direction, pawn, colTo,
-                                rowTo);
-
-                        // If the move is legal and an actual movement takes
-                        // place.
-                        if (temp.getLegalityOfMove()
-                                && (colTo != pawn.getColumn()
-                                || rowTo != pawn.getRow())) {
-
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
     @Override
     public boolean isGameOver() {
 
@@ -671,8 +615,140 @@ public class ChessBoard implements Board, Cloneable {
         } else {
 
             // Determine whether there is a legal move left.
-            return hasToSuspendMove(machine) && hasToSuspendMove(human);
+            return possibleMoves(machine).isEmpty()
+                    && possibleMoves(human).isEmpty();
         }
+    }
+
+    @Override
+    public Board machineMove() {
+
+        if (nextPlayer != Player.MACHINE) {
+            throw new IllegalMoveException("It is not the machine player's "
+                    + "turn.");
+        } else if (isGameOver()) {
+            throw new IllegalMoveException("No more moves can be made as this"
+                    + " game is already finished.");
+        } else {
+
+            // Board on which the move is executed.
+            ChessBoard newBoard = (ChessBoard) this.clone();
+
+            // Create a look-ahead tree with which the best next move for the
+            // machine will be determined.
+            Node<ChessBoard> root = new Node<>(newBoard, null, 0);
+            newBoard.constructTree(root, machine.getLevel());
+            newBoard.assignValues(root);
+
+            return (Board) root.getBestChild();
+        }
+    }
+
+    public void constructTree(Node<ChessBoard> node, int level) {
+        if (level > 0) {
+
+            // Create child nodes for node.
+            for (ChessBoard possibleMove :
+                    possibleMoves(nextPlayer)) {
+
+                Node<ChessBoard> child =
+                        new Node<>(possibleMove, node, level - 1);
+
+                node.addChild(child);
+                possibleMove.constructTree(child, level - 1);
+            }
+            /*
+            // In case the player has to suspend a move let the other
+            // player move.
+            //TODO ich glaube mein neuse setnextplayer macht das überflüßßig?
+            if (possibleMoves(nextPlayer).isEmpty() &&!isGameOver()) {
+                if (!board.isGameOver()) {
+                    if (getNextPlayer() == Player.HUMAN) {
+                        board.setNextPlayer(Player.MACHINE);
+                        createChildren(Player.MACHINE);
+                    } else {
+                        board.setNextPlayer(Player.HUMAN);
+                        createChildren(Player.HUMAN);
+                    }
+             */
+        }
+    }
+
+
+    public void assignValues(Node<ChessBoard> node) {
+
+        if (node.getChildren().isEmpty()) {
+
+            // Assign value to leaf.
+            node.setValue(node.getContent().createBoardRating(node.getHeight()));
+        } else {
+
+            // Recursively assign values to children.
+            for (Node child : node.getChildren()) {
+                assignValues(child);
+            }
+
+            // Assign value to inner node.
+            if (getNextPlayer() == Player.HUMAN) {
+                node.setValue(node.getContent().createBoardRating(node.getHeight())
+                        + node.getWorstChild().getValue());
+            } else {
+                node.setValue(node.getContent().createBoardRating(node.getHeight())
+                        + node.getBestChild().getValue());
+            }
+        }
+    }
+
+    //TODO create method bool canMove(player) which checks if possileMoves
+    // .isempty
+    // TODO use flag!
+    //TODO möglicherweise attribut nextplayer entfernbar?
+    public List<ChessBoard> possibleMoves(Player player) {
+
+        // List of pawns out of whose moves the children nodes will be
+        // constructed.
+        List<Pawn> pawns = getPawnsList(player.getColor());
+
+        // List of possibleMoves by the given player.
+        List<ChessBoard> possibleMoves = new ArrayList<>();
+
+        //TODO USSEEEEEE MEEEE
+        int flag = 1;
+        if (player == Player.MACHINE) {
+            flag = -1;
+        }
+
+        // Create child nodes for each possible move by each pawn.
+        for (Pawn pawn : pawns) {
+
+            //Can move at most one column.
+            for (int colTo = pawn.getColumn() - 1; colTo
+                    <= pawn.getColumn() + 1; colTo++) {
+
+                //Can move at most two rows.
+                for (int rowTo = pawn.getRow() - 2; rowTo <= pawn.getRow() + 2;
+                     rowTo++) {
+
+                    // If the move is legal and an actual movement takes place.
+                    if (isLegalMove(pawn, colTo, rowTo)
+                            && ((colTo != pawn.getColumn()
+                            || rowTo != pawn.getRow()))
+                            //&& !isGameOver()
+                            ) {
+                        //TODO verletzung klassengeheimnis entfernen
+                        // durch flag
+
+                        ChessBoard boardClone = (ChessBoard) this.clone();
+                        //TODO getPawn verletzung klassengeheimnis?? aber wiesonst
+                        boardClone.makeMove(boardClone.getPawn(pawn.getColumn(),
+                                pawn.getRow()), colTo, rowTo);
+                        boardClone.setNextPlayer();
+                        possibleMoves.add(boardClone);
+                    }
+                }
+            }
+        }
+        return possibleMoves;
     }
 
     @Override
@@ -829,6 +905,7 @@ public class ChessBoard implements Board, Cloneable {
             return blackPawns.size();
         }
     }
+
     /**
      * Getter for the pawn list associated with the given color.
      *
@@ -868,8 +945,21 @@ public class ChessBoard implements Board, Cloneable {
      * This method should only be used after a move was executed.
      */
     private void setNextPlayer() {
-        if (!hasToSuspendMove(Player.getOppositePlayer(nextPlayer))) {
+        if (!possibleMoves(Player.getOppositePlayer(nextPlayer)).isEmpty()) {
             nextPlayer = Player.getOppositePlayer(nextPlayer);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int row = SIZE; row >= 1; row--) {
+            for (int col = 1; col <= SIZE; col++) {
+                stringBuilder.append(getSlot(col,row).toString()).append(" ");
+            }
+            stringBuilder.append("\n");
+        }
+        return stringBuilder.toString();
     }
 }

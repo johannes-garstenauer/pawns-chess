@@ -42,11 +42,14 @@ public class Pawn implements Cloneable{
         } else {
             final Pawn other = (Pawn) o;
 
+            //TODO vergleiche mit gettern ode rmit den variablen???
             if (this.getColumn() != other.getColumn()) {
                 return false;
             } else if (this.getRow() != other.getRow()) {
                 return false;
-            } else return this.isOpeningMove() == other.isOpeningMove();
+            } else {
+                return this.isOpeningMove() == other.isOpeningMove();
+            }
         }
     }
 
