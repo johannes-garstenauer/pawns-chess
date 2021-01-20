@@ -295,16 +295,18 @@ public class TestClass {
     @Test
     public void createBoardRatingTest() {
 //TODO praktomat beispiele
-//TODO beispiel 1 schriit
+//TODO beispiel 1 schritt -> funktioniert yay
 
         ChessBoard board = new ChessBoard(1,Color.WHITE);
         board = (ChessBoard) board.move(3,1,3,3);
 
         int m = 0;
         for (ChessBoard possibleMove : board.possibleMoves(Player.MACHINE)) {
-            System.out.println(++m);
+            System.err.println(++m);
+            System.out.println();
             System.out.println(possibleMove);
         }
+        System.out.println(board.nextPlayer);
 
 //TODO Besipiel Level 3
 /*
