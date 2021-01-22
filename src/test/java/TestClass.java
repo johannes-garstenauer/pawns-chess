@@ -1,8 +1,6 @@
-import model.chessboard.Board;
 import model.chessboard.ChessBoard;
 import model.chessboard.Color;
 import model.chessboard.Pawn;
-import model.lookAheadTree.Node;
 import model.player.Player;
 import org.junit.Test;
 
@@ -314,11 +312,11 @@ public class TestClass {
         newBoard.whitePawns.add(new Pawn(8, 1));
 
         for (Pawn whitePawn : newBoard.whitePawns) {
-            whitePawn.hasMoved();
+            whitePawn.setHasMoved();
         }
 
         for (Pawn blackPawn : newBoard.blackPawns) {
-            blackPawn.hasMoved();
+            blackPawn.setHasMoved();
         }
 
         for (int i = 5; i < 9; i++) {
@@ -374,11 +372,11 @@ public class TestClass {
         newBoard.whitePawns.add(new Pawn(8, 1));
 
         for (Pawn whitePawn : newBoard.whitePawns) {
-            whitePawn.hasMoved();
+            whitePawn.setHasMoved();
         }
 
         for (Pawn blackPawn : newBoard.blackPawns) {
-            blackPawn.hasMoved();
+            blackPawn.setHasMoved();
         }
 
         for (int i = 5; i < 9; i++) {

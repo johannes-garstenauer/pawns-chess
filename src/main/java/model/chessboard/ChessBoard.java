@@ -320,7 +320,7 @@ public class ChessBoard implements Board, Cloneable {
             }
             pawn.setColumn(colTo);
             pawn.setRow(rowTo);
-            pawn.hasMoved();
+            pawn.setHasMoved();
         }
     }
 

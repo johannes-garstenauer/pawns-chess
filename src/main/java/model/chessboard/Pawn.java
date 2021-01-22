@@ -24,7 +24,15 @@ public class Pawn implements Cloneable {
      */
     public boolean hasMoved = false;
 
-
+    /**
+     * This is a constructor for the pawn.
+     *
+     * @param column The column in which the pawn will be placed.
+     * @param row    The row in which the pawn will be placed.
+     * @throws IllegalArgumentException Might be thrown if given position is
+     *                                  illegal e.g. not within the board's
+     *                                  confines.
+     */
     public Pawn(int column, int row) throws IllegalArgumentException {
         if (column >= 0 && column <= Board.SIZE && row >= 0
                 && row <= Board.SIZE) {
@@ -85,7 +93,7 @@ public class Pawn implements Cloneable {
 
     /**
      * This indicates whether a pawn has already been moved.
-     *
+     * <p>
      * Return {@code true} if the pawns has moved. Otherwise return
      * {@code false}.
      */
@@ -93,23 +101,56 @@ public class Pawn implements Cloneable {
         return !hasMoved;
     }
 
-    public void hasMoved() {
+    /**
+     * A setter in order to change the {@code hasMoved} property of the pawn.
+     */
+    public void setHasMoved() {
         hasMoved = true;
     }
 
+    /**
+     * A getter for the column in which the pawn is situated on the board.
+     *
+     * @return The column in which the pawn is situated.
+     */
     public int getColumn() {
         return column;
     }
 
+    /**
+     * A getter for the row in which the pawn is situated on the board.
+     *
+     * @return The row in which the pawn is situated.
+     */
     public int getRow() {
         return row;
     }
 
-    public void setColumn(int column) {
+    /**
+     * A setter in order to change the {@code column} of the pawn on the board.
+     *
+     * @throws IllegalArgumentException Might be thrown if given position is
+     *                                  illegal e.g. not within the board's confines.
+     */
+    public void setColumn(int column) throws IllegalArgumentException {
+        if (column < 1 || column > Board.SIZE) {
+            throw new IllegalArgumentException("The column must be on the "
+                    + "board.");
+        }
         this.column = column;
     }
 
-    public void setRow(int row) {
+    /**
+     * A setter in order to change the {@code row} of the pawn on the board.
+     *
+     * @throws IllegalArgumentException Might be thrown if given position is
+     *                                  illegal e.g. not within the board's confines.
+     */
+    public void setRow(int row) throws IllegalArgumentException {
+        if (row < 1 || row > Board.SIZE) {
+            throw new IllegalArgumentException("The row must be on the "
+                    + "board.");
+        }
         this.row = row;
     }
 }

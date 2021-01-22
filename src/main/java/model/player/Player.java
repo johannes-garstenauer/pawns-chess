@@ -2,17 +2,36 @@ package model.player;
 
 import model.chessboard.Color;
 
+/**
+ * An enumeration of players. A player has an associated (through his color)
+ * list of pawns on the board.
+ */
 public enum Player {
-    //TODO: JAVADOC
-    //TODO: (Color) gute Idee? -> in diesem Fall default case zuweisungen
-    HUMAN, MACHINE;
 
-    //TODO: gut so? + Javadoc
+    /**
+     * The human player.
+     */
+    HUMAN,
+
+    /**
+     * The machine player.
+     */
+    MACHINE;
+
+    /**
+     * The players color.
+     */
     private Color color;
+
+    /**
+     * The machines difficulty level. It indicates the depth of the
+     * look-ahead tree which the machine can use to find its next best move.
+     * High values will be very demanding on runtime and resources.
+     */
     private int level;
 
     /**
-     *  Returns the tile color of this player.
+     * Returns the tile color of this player.
      *
      * @return The tile color of the player.
      */
@@ -20,15 +39,49 @@ public enum Player {
         return color;
     }
 
-    public void setColor(Color color){
+    /**
+     * Setter for the color of the player.
+     *
+     * @param color The color which to which the player will be assigned.
+     * @throws IllegalArgumentException Will be thrown if the color of the
+     *                                  player is not {@code Color.WHITE} or
+     *                                  {@code Color.BLACK}.
+     */
+    public void setColor(Color color) throws IllegalArgumentException {
+        if (color != Color.BLACK && color != Color.WHITE) {
+            throw new IllegalArgumentException("The pawn should either be "
+                    + "white or black.");
+        }
         this.color = color;
     }
 
-    public void setLevel(int level) {
+    /**
+     * Setter for the difficulty level.
+     *
+     * @param level The difficulty level to which the machine will be set.
+     * @throws IllegalCallerException Will be thrown if it is attempted to
+     *                                assign a level to the human.
+     */
+    public void setLevel(int level) throws IllegalCallerException {
+        if (this == HUMAN) {
+            throw new IllegalCallerException("The human does not need a "
+                    + "difficulty level.");
+        }
         this.level = level;
     }
 
+    /**
+     * Getter for the machines difficulty level.
+     *
+     * @return Returns the machines level.
+     * @throws IllegalCallerException Will be thrown if it is attempted to
+     * get the level of the human.
+     */
     public int getLevel() {
+        if (this == HUMAN) {
+            throw new IllegalCallerException("The human does not have a "
+                    + "difficulty level.");
+        }
         return level;
     }
 
@@ -36,7 +89,7 @@ public enum Player {
      * Determines the player opposite to the player which was given.
      *
      * @param player The given player. Has to be either {@code Player.HUMAN} or
-     *              {@code Color.MACHINE}.
+     *               {@code Color.MACHINE}.
      * @return The opposite player of the given player, if possible.
      * @throws IllegalArgumentException Might be thrown if the given player
      *                                  does not have an opposite player.
