@@ -5,16 +5,11 @@ import model.chessboard.Color;
 public enum Player {
     //TODO: JAVADOC
     //TODO: (Color) gute Idee? -> in diesem Fall default case zuweisungen
-    HUMAN(Color.WHITE), MACHINE(Color.BLACK);
+    HUMAN, MACHINE;
 
     //TODO: gut so? + Javadoc
     private Color color;
-    public int level;
-
-    //TODO: Konstruktor gute Idee?
-    Player(Color color) {
-        this.color = color;
-    }
+    private int level;
 
     /**
      *  Returns the tile color of this player.

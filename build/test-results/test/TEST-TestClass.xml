@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-22T14:05:34" hostname="LAPTOP-GS97P0F9" time="0.087">
+<testsuite name="TestClass" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-01-22T22:09:24" hostname="LAPTOP-GS97P0F9" time="0.015">
   <properties/>
-  <testcase name="createBoardRatingTest" classname="TestClass" time="0.087"/>
-  <system-out><![CDATA[-16.5
-B               
-              B 
-  W   B   B B   
+  <testcase name="createBoardRatingTest" classname="TestClass" time="0.015"/>
+  <system-out><![CDATA[                
+B W           B 
+      B   B B   
     B           
   W   W         
                 
                 
         W W W W 
 
+
+-4.5
+-7.0
+2.0
+1.5
+0.0
+-8.0
 ]]></system-out>
-  <system-err><![CDATA[]]></system-err>
+  <system-err><![CDATA[sum: -8.0
+]]></system-err>
 </testsuite>

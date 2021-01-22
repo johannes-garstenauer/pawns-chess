@@ -1,9 +1,27 @@
 package model.chessboard;
 
-public class Pawn implements Cloneable{
+/**
+ * A public class that symbolizes a pawn on the chessboard. A pawns
+ * association with a player is not implemented within this class but within
+ * {@code Board} or its implementations.
+ */
+public class Pawn implements Cloneable {
 
+    /**
+     * The column in which the pawn is situated on the board.
+     */
     private int column;
+
+    /**
+     * The row in which the pawn is situated on the board.
+     */
     private int row;
+
+    //TODO entfernen, stattdessen prüfen ob row == startingrow
+    /**
+     * An indication as to whether this pawn has already been moved. Useful
+     * in determining whether a double move can be performed.
+     */
     public boolean hasMoved = false;
 
 
@@ -20,8 +38,13 @@ public class Pawn implements Cloneable{
         }
     }
 
+    /**
+     * Deep clones an instance of {@code Pawn}.
+     *
+     * @return Returns a deep clone of a pawn.
+     */
     @Override
-    public Pawn clone(){
+    public Pawn clone() {
         Pawn copy;
 
         try {
@@ -33,6 +56,13 @@ public class Pawn implements Cloneable{
         return copy;
     }
 
+    /**
+     * Determines whether on pawn object is equal to another.
+     *
+     * @param o The pawn that is to be compared to.
+     * @return Return {@code true} if the pawns are equal. Otherwise return
+     * {@code false}.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -53,11 +83,17 @@ public class Pawn implements Cloneable{
         }
     }
 
+    /**
+     * This indicates whether a pawn has already been moved.
+     *
+     * Return {@code true} if the pawns has moved. Otherwise return
+     * {@code false}.
+     */
     public boolean isOpeningMove() {
         return !hasMoved;
     }
 
-    public void hasMoved(){
+    public void hasMoved() {
         hasMoved = true;
     }
 
