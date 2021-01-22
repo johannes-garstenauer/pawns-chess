@@ -12,12 +12,7 @@ public enum Color {
      * Specifies the color of a pawn or a player as white. This means the white
      * player has control over the corresponding white pawns.
      */
-    BLACK,
-
-    /**
-     * Has no color.
-     */
-    NONE;
+    BLACK;
 
     //TODO funzt das at code linken im java doc?
 
@@ -26,22 +21,18 @@ public enum Color {
      *
      * @param color The given color. Has to be either {@code Color.WHITE} or
      *              {@code Color.BLACK} or {@code Color.NONE}.
-     * @return  The opposite color of the given color, if possible. If the
-     *          color is {@code Color.NONE} the same color will be returned.
+     * @return The opposite color of the given color, if possible. If the
+     * color is {@code Color.NONE} the same color will be returned.
      */
     public static Color getOppositeColor(Color color) {
-        if (color == Color.NONE) {
-            return Color.NONE;
+        if (color == Color.WHITE) {
+            return Color.BLACK;
         } else {
-            if (color == Color.WHITE) {
-                return Color.BLACK;
-            } else {
-                return Color.WHITE;
-            }
+            return Color.WHITE;
         }
     }
 
-    public String toString(){
+    public String toString() {
         if (this == WHITE) {
             return "W";
         } else if (this == BLACK) {

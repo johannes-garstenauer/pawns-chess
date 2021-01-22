@@ -291,25 +291,8 @@ public class TestClass {
 
 */
 
-    //TODO: Dieser Test muss funktionieren! -> -30.0
     @Test
-    public void createBoardRatingTest() {
-//TODO praktomat beispiele
-//TODO beispiel 1 schritt -> funktioniert yay
-
-        ChessBoard board = new ChessBoard(1,Color.WHITE);
-        board = (ChessBoard) board.move(3,1,3,3);
-
-        int m = 0;
-        for (ChessBoard possibleMove : board.possibleMoves(Player.MACHINE)) {
-            System.err.println(++m);
-            System.out.println();
-            System.out.println(possibleMove);
-        }
-        System.out.println(board.nextPlayer);
-
-//TODO Besipiel Level 3
-/*
+    public void shortTest() {
         ChessBoard newBoard = new ChessBoard(3,Color.WHITE);
 
         newBoard.whitePawns.clear();
@@ -345,17 +328,70 @@ public class TestClass {
         newBoard.getPawn(1,8).hasMoved = false;
         newBoard.nextPlayer = Player.MACHINE;
 
+        ChessBoard machineMove = (ChessBoard) newBoard.machineMove();
 
-        Node<ChessBoard> root = new Node<>(newBoard, null, 0);
+        System.out.println(machineMove);
+    }
+
+    //TODO: Dieser Test muss funktionieren! -> -30.0
+    @Test
+    public void createBoardRatingTest() {
+//TODO praktomat beispiele
+//TODO beispiel 1 schritt -> funktioniert yay
+/*
+        ChessBoard board = new ChessBoard(1,Color.WHITE);
+        board = (ChessBoard) board.move(3,1,3,3);
 
         int i = 0;
-        for (ChessBoard possibleMove : newBoard.possibleMoves(Player.MACHINE)) {
-            System.out.println(++i);
-            System.out.println(possibleMove);
+        for (ChessBoard possibleMove : board.possibleMoves(Player.MACHINE)) {
+            System.err.println(++i);
+            System.out.println(possibleMove.createBoardRating(1));
         }
 
-*/
+ */
+
+
+//TODO Besipiel Level 3
+        ChessBoard newBoard = new ChessBoard(3,Color.WHITE);
+
+        newBoard.whitePawns.clear();
+        newBoard.blackPawns.clear();
+
+        newBoard.blackPawns.add(new Pawn(8,7));
+        newBoard.blackPawns.add(new Pawn(7,6));
+        newBoard.blackPawns.add(new Pawn(6,6));
+        newBoard.blackPawns.add(new Pawn(4,6));
+        newBoard.blackPawns.add(new Pawn(3,6));
+        newBoard.blackPawns.add(new Pawn(1,8));
+
+        newBoard.whitePawns.add(new Pawn(2,6));
+        newBoard.whitePawns.add(new Pawn(2,4));
+        newBoard.whitePawns.add(new Pawn(4,4));
+        newBoard.whitePawns.add(new Pawn(5,1));
+        newBoard.whitePawns.add(new Pawn(6,1));
+        newBoard.whitePawns.add(new Pawn(7,1));
+        newBoard.whitePawns.add(new Pawn(8,1));
+
+        for (Pawn whitePawn : newBoard.whitePawns) {
+            whitePawn.hasMoved();
+        }
+
+        for (Pawn blackPawn : newBoard.blackPawns) {
+            blackPawn.hasMoved();
+        }
+
+        for (int i = 5; i < 9; i++) {
+            newBoard.getPawn(i,1).hasMoved = false;
+        }
+
+        newBoard.getPawn(1,8).hasMoved = false;
+        newBoard.nextPlayer = Player.MACHINE;
+
+        ChessBoard machineMove = (ChessBoard) newBoard.machineMove();
+
+        System.out.println(machineMove);
         //newBoard.constructTree(root, Player.MACHINE.getLevel());
+
         /*
         newBoard.assignValues(root);
 
@@ -847,18 +883,17 @@ public class TestClass {
 
     */
 
-    /*
+
     @Test
     public void specialTest() {
+        /*
         ChessBoard board = new ChessBoard(2, Color.WHITE);
 
-        board.blackPawns.remove(board.getPawn(1,4,Color.BLACK));
-        board.whitePawns.remove(board.getPawn(3,1,Color.WHITE));
+        board.blackPawns.remove(board.getPawn(1,4));
+        board.whitePawns.remove(board.getPawn(3,1));
 
         board = (ChessBoard) board.move(1,1,1,3);
 
-        //board.whitePawns.remove(board.getPawn(2,1,Color.WHITE));
-        //board.whitePawns.add(new Pawn(2,3));
         board.blackPawns.remove(board.getPawn(3,4,Color.BLACK));
         board.blackPawns.add(new Pawn(3,2));
 
@@ -880,8 +915,21 @@ public class TestClass {
             System.out.print("Pawn: " + k);
             System.out.println(" Row: " + blackPawn.getRow() + " Col: " + blackPawn.getColumn());
         }
+         */
+
+        ChessBoard b = new ChessBoard(1,Color.WHITE);
+        b.blackPawns.remove(b.getPawn(1,4));
+
+        b.whitePawns.remove(b.getPawn(3,1));
+
+        b.makeMove(b.getPawn(1,1),1,2);
+        b.nextPlayer = Player.MACHINE;
+        b.makeMove(b.getPawn(3,4),3,2);
+
+        System.out.println(b);
+        b.createBoardRating(0);
+
     }
 
-     */
 }
 

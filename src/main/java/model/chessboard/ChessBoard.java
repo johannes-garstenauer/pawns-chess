@@ -15,31 +15,33 @@ public class ChessBoard implements Board, Cloneable {
     public List<Pawn> whitePawns = new ArrayList<>();
     public List<Pawn> blackPawns = new ArrayList<>();
 
+    //TODO: Koordinaten von Move auch in der shell prüfen??
+
     /**
      * This is the constructor of an implementation of a {@code Board} for
      * pawns chess.
      * The pawns will be initiated at the opposing sides of the board.
      *
      * @param level      The difficulty level of the machine player. This
-     *                   determines how many moves the machine player can simulate
-     *                   into the future in order to determine his best next move.
+     *                   determines how many moves the machine player can
+     *                   simulate into the future in order to determine his
+     *                   best next move.
      * @param humanColor The color of your pawns. If you are white you will
      *                   start first. If you are black the machine player
      *                   will start the game. Regardless of your color, your
      *                   pawns will start at the bottom of the board.
      * @throws IllegalArgumentException Throws an exception if the level or
-     *                                  the {@code humanColor} are not valid.
+     *                                  the humanColor are not valid.
      */
-    public ChessBoard(int level, Color humanColor) throws IllegalArgumentException {
+    public ChessBoard(int level, Color humanColor)
+            throws IllegalArgumentException {
 
-        //TODO: Koordinaten von Move auch in der shell prüfen
-        //TODO diese beschränkung in der shell und nicht hier machen
-        if (level < 1 || level > 4) {
-            throw new IllegalArgumentException("Only levels one to four are "
-                    + "supported.");
-        } else if (humanColor == Color.NONE || humanColor == null) {
+        if (humanColor == null) {
             throw new IllegalArgumentException("The human player has to have "
                     + "a valid color.");
+        } else if (level < 1) {
+            throw new IllegalArgumentException("The machine's level must be "
+                    + "positive and greater than zero.");
         } else {
             Player.MACHINE.setLevel(level);
             Player.HUMAN.setColor(humanColor);
@@ -49,6 +51,9 @@ public class ChessBoard implements Board, Cloneable {
         createInitialPawnPositions();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Player getOpeningPlayer() {
         if (Player.HUMAN.getColor() == Color.WHITE) {
@@ -61,18 +66,17 @@ public class ChessBoard implements Board, Cloneable {
     /**
      * Initiates the pawns in their starting positions.
      * The pawns of the human player will be placed on the lowest row of the
-     * board. The machines pawns on the highest.
+     * board. The machines pawns on the highest. The pawns are assigned to
+     * their respective lists of pawns ( {@code whitePawns} or {@code
+     * blackPawns}) in a left to right order from the pawns perspective.
      *
      * @throws IllegalStateException The boards pawn lists have to be empty.
      *                               If there are already pawns on the board the
      *                               initial pawn positions should not be
      *                               created.
      */
-    private void createInitialPawnPositions() throws IllegalStateException {
-        if (!(whitePawns.isEmpty() && blackPawns.isEmpty())) {
-            throw new IllegalStateException("The boards pawns have to be "
-                    + "uninitialized.");
-        }
+    private void createInitialPawnPositions() {
+        assert whitePawns.isEmpty() && blackPawns.isEmpty();
 
         int j = SIZE;
         for (int i = 1; i < SIZE + 1; i++) {
@@ -95,61 +99,97 @@ public class ChessBoard implements Board, Cloneable {
      * @param rowFrom The row starting position.
      * @param colTo   The column finish position.
      * @param rowTo   The row finish position.
-     * @return The direction in which the move occurs.
-     * @throws IllegalArgumentException May be thrown if the starting or
-     *                                  finish position are not within the
-     *                                  board, or if the move has an
-     *                                  illegal distance or direction.
+     * @return The direction in which the move occurs or
+     * {@code Direction.ILLEGAL_DIRECTION} if the direction of the move is
+     * illegal.
      */
     private Direction determineDirection(int colFrom, int rowFrom, int colTo,
-                                         int rowTo)
-            throws IllegalArgumentException {
+                                         int rowTo) {
 
+        // Exception code
+        /*
+        // Make sure the move occurs within the boards limits.
         if (colFrom < 1 || colFrom > SIZE || rowFrom < 1 || rowFrom > SIZE
-                || colTo < 1 || colTo > SIZE || rowTo < 1 || rowTo > SIZE) {
-            throw new IllegalArgumentException("Moves must occur within the "
-                    + "board!");
+                || colTo < 1 || colTo > SIZE || rowTo < 1 || rowTo > SIZE);
+
+        // Distance moved between columns.
+        int colDist = colTo - colFrom;
+
+        // Distance moved between rows.
+        int rowDist = rowTo - rowFrom;
+
+        if (getPawn(colFrom, rowFrom) == null) {
+            throw new IllegalArgumentException("Moves must be executed on "
+                    + "existing Pawns.");
+        } else if ((getNextPlayer() == Player.HUMAN && !(rowDist > 0))
+                || (getNextPlayer() == Player.MACHINE && !(rowDist < 0))) {
+            throw new IllegalArgumentException("This move has an illegal "
+                    + "direction.");
         } else {
 
-            // Distance moved between columns.
-            int colDist = colTo - colFrom;
+            // Determining the absolute distance between rows is now possible as
+            // we now know that the direction is correct.
+            rowDist = Math.abs(rowDist);
 
-            // Distance moved between rows.
-            int rowDist = rowTo - rowFrom;
+            if (colDist == 0 && rowDist == 1) {
+                return Direction.FORWARD;
+            } else if (colDist == 0 && rowDist == 2) {
+                return Direction.DOUBLE_FORWARD;
+            } else if (colDist == -1 && rowDist == 1) {
+                return Direction.DIAGONAL_LEFT;
+            } else if (colDist == 1 && rowDist == 1) {
+                return Direction.DIAGONAL_RIGHT;
+            } else {
+                throw new IllegalArgumentException("This move has an "
+                        + "illegal distance or direction.");
+            }
+        }
+        */
 
-            //TODO hier keine exceptions?
-            if (getPawn(colFrom, rowFrom) == null) {
-                throw new IllegalArgumentException("Moves must be executed on "
-                        + "existing Pawns.");
-                //TODO nicht nextplayer sondern currentplayer??
-            } else if (getNextPlayer() == Player.HUMAN && !(rowDist > 0)) {
-                throw new IllegalArgumentException("This move has an illegal "
-                        + "direction.");
-            } else if (getNextPlayer() == Player.MACHINE && !(rowDist < 0)) {
-                throw new IllegalArgumentException("This move has an illegal "
-                        + "direction.");
+        // Make sure the move occurs within the boards limits.
+        assert (colFrom >= 1 && colFrom <= SIZE && rowFrom >= 1
+                && rowFrom <= SIZE && colTo >= 1 && colTo <= SIZE
+                && rowTo >= 1 && rowTo <= SIZE);
+
+        // Make sure the move is executed on an existing pawn.
+        assert (getPawn(colFrom, rowFrom) != null);
+
+        // Distance moved between columns.
+        int colDist = colTo - colFrom;
+
+        // Distance moved between rows.
+        int rowDist = rowTo - rowFrom;
+
+        // Make sure that the move is not in the wrong the direction.
+        //TODO nicht nextplayer sondern currentplayer??
+        if ((getNextPlayer() == Player.HUMAN && !(rowDist > 0))
+                || (getNextPlayer() == Player.MACHINE && !(rowDist < 0))) {
+            return Direction.ILLEGAL_DIRECTION;
+        } else {
+
+            // Determining the absolute distance between rows is now possible as
+            // we now know that the direction is correct.
+            rowDist = Math.abs(rowDist);
+
+            if (colDist == 0 && rowDist == 1) {
+                return Direction.FORWARD;
+            } else if (colDist == 0 && rowDist == 2) {
+                return Direction.DOUBLE_FORWARD;
+            } else if (colDist == -1 && rowDist == 1) {
+                return Direction.DIAGONAL_LEFT;
+            } else if (colDist == 1 && rowDist == 1) {
+                return Direction.DIAGONAL_RIGHT;
             } else {
 
-                rowDist = Math.abs(rowDist);
-
-                if (colDist == 0 && rowDist == 1) {
-                    return Direction.FORWARD;
-                } else if (colDist == 0 && rowDist == 2) {
-                    return Direction.DOUBLE_FORWARD;
-                } else if (colDist == -1 && rowDist == 1) {
-                    return Direction.DIAGONAL_LEFT;
-                } else if (colDist == 1 && rowDist == 1) {
-                    return Direction.DIAGONAL_RIGHT;
-                } else {
-                    throw new IllegalArgumentException("This move has an "
-                            + "illegal distance or direction.");
-                }
+                // The move is not possible.
+                return Direction.ILLEGAL_DIRECTION;
             }
         }
     }
 
+
     /**
-     * Determine whether this is a legal move.
+     * Determine whether a given move is legal.
      *
      * @param pawn  The pawn which is meant to make the move.
      * @param colTo The column destination of the move.
@@ -161,70 +201,75 @@ public class ChessBoard implements Board, Cloneable {
      * other conditions, there is no pawn to be attacked at the desired
      * destination of the move.
      */
-    public boolean isLegalMove(Pawn pawn, int colTo,
-                               int rowTo) {
+    private boolean isLegalMove(Pawn pawn, int colTo,
+                                int rowTo) {
 
-        // Determine whether the move is in a legal direction and whether the
-        // pawn is in a legal position or even existing in that position at all.
-        Direction direction;
-        try {
-            direction = determineDirection(pawn.getColumn(),
-                    pawn.getRow(), colTo, rowTo);
-        } catch (IllegalArgumentException e) {
+        assert pawn != null;
+        assert colTo > 1 && colTo <= SIZE && rowTo > 1 && rowTo <= SIZE;
+
+        //TODO verletzung klassengeheimnis könnte man durch umbaung verhindern.
+        Direction direction = determineDirection(pawn.getColumn(),
+                pawn.getRow(), colTo, rowTo);
+
+        // Determine whether the move has a legal direction.
+        if (direction == Direction.ILLEGAL_DIRECTION) {
             return false;
-        }
+        } else {
 
-        // List of friendly pawns.
-        List<Pawn> friendlyPawns = getPawnsList(getColor(pawn));
+            // List of friendly pawns.
+            List<Pawn> friendlyPawns = getPawnsList(getColor(pawn));
 
-        // List of hostile pawns.
-        List<Pawn> hostilePawns = getPawnsList(Color.getOppositeColor(
-                getColor(pawn)));
+            // List of hostile pawns.
+            List<Pawn> hostilePawns = getPawnsList(Color.getOppositeColor(
+                    getColor(pawn)));
 
 
-        if (direction == Direction.FORWARD
-                || direction == Direction.DOUBLE_FORWARD) {
+            if (direction == Direction.FORWARD
+                    || direction == Direction.DOUBLE_FORWARD) {
 
-            // Determine whether a friendly or hostile pawn blocks this move.
-            if (friendlyPawns.contains(getPawn(colTo, rowTo))
-                    || hostilePawns.contains(getPawn(colTo, rowTo))) {
+                // Determine whether a pawn blocks this move.
+                if (friendlyPawns.contains(getPawn(colTo, rowTo))
+                        || hostilePawns.contains(getPawn(colTo, rowTo))) {
 
-                // Return false if a pawn blocks this move.
-                return false;
-            } else if (direction == Direction.DOUBLE_FORWARD) {
+                    // Return false if a pawn blocks this move.
+                    return false;
+                } else if (direction == Direction.DOUBLE_FORWARD) {
 
-                // Determine whether the pawn is moving up or down.
-                if (nextPlayer == Player.HUMAN) {
+                    // Determine whether the pawn is moving up or down.
+                    if (nextPlayer == Player.HUMAN) {
 
-                    // Determine whether there is a pawn blocking the double
-                    // move.
-                    return pawn.isOpeningMove() && getPawn(pawn.getColumn(),
-                            pawn.getRow() + 1) == null;
+                        // Determine whether there is a pawn blocking the double
+                        // move.
+                        return pawn.isOpeningMove() && getPawn(pawn.getColumn(),
+                                pawn.getRow() + 1) == null;
+                    } else {
+
+                        // Determine whether there is a pawn blocking the double
+                        // move.
+                        return pawn.isOpeningMove() && getPawn(pawn.getColumn(),
+                                pawn.getRow() - 1) == null;
+                    }
+
                 } else {
 
-                    // Determine whether there is a pawn blocking the double
-                    // move.
-                    return pawn.isOpeningMove() && getPawn(pawn.getColumn(),
-                            pawn.getRow() - 1) == null;
+                    // A legal move forward can occur.
+                    return true;
                 }
 
             } else {
 
-                // A legal move forward can occur.
-                return true;
+                // Determine whether a hostile pawn can be attacked.
+                return hostilePawns.contains(getPawn(colTo, rowTo));
             }
-
-        } else {
-
-            // Determine whether a hostile pawn can be attacked.
-            return hostilePawns.contains(getPawn(colTo, rowTo));
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Board move(int colFrom, int rowFrom, int colTo, int rowTo) {
-
-        //TODO !!! Abfrage in Shell ob isGameOver
+    public Board move(int colFrom, int rowFrom, int colTo, int rowTo)
+            throws IllegalMoveException, IllegalArgumentException {
 
         if (nextPlayer != Player.HUMAN) {
             throw new IllegalMoveException("It is not the human player's "
@@ -235,40 +280,42 @@ public class ChessBoard implements Board, Cloneable {
         } else if (hasToSuspend(Player.HUMAN)) {
             throw new IllegalMoveException("You have to suspend this "
                     + "move.");
-            //TODO oder doch lieber null
-        }
+        } else if (colFrom < 1 || colFrom > SIZE || rowFrom < 1 || rowFrom > SIZE
+                || colTo < 1 || colTo > SIZE || rowTo < 1 || rowTo > SIZE) {
+            throw new IllegalArgumentException("The move must occur within "
+                    + "the board!");
+        } else if (getPawn(colFrom, rowFrom) == null) {
+            throw new IllegalArgumentException("There is no pawn to be moved "
+                    + "at the given position.");
+        } else if (!this.getPawnsList(getHumanColor())
+                .contains(getPawn(colFrom, rowFrom))) {
+            throw new IllegalArgumentException("The pawn at the given "
+                    + "position is hostile and can therefore not be moved!");
+        } else {
 
             // Board on which the move is executed.
             ChessBoard newBoard = (ChessBoard) this.clone();
 
             // Pawn that will attempt to make a move.
-            Pawn pawnToBeMoved;
+            Pawn pawnToBeMoved = newBoard.getPawn(colFrom, rowFrom);
 
-            // Determine whether the move has a legal direction and
-            // distance. Also check whether the move occurs within the
-            // board.
-            try {
-
-                // Assign pawn that will attempt to make a move.
-                pawnToBeMoved = newBoard.getPawn(colFrom, rowFrom);
-
-                determineDirection(colFrom, rowFrom, colTo, rowTo);
-            } catch (IllegalArgumentException ex) {
-                throw new IllegalMoveException(ex.getMessage());
-            }
-
-            if (isLegalMove(pawnToBeMoved, colTo, rowTo) && newBoard
-                    .getPawnsList(getHumanColor()).contains(pawnToBeMoved)) {
-
+            if (isLegalMove(pawnToBeMoved, colTo, rowTo)) {
                 newBoard.makeMove(pawnToBeMoved, colTo, rowTo);
+
+                //TODO hier if !hasTosuspend? JAJAA scheint eine Lösung zu sein!
+                // da jeder move anfangs überprüft wird ob man dran ist kann
+                // die shell erkenn ob jmd aussetzen muss!
                 newBoard.nextPlayer = Player.MACHINE;
                 return newBoard;
             } else {
 
-                // Return null because either the move is not legal or
+                // Return null because the move is not legal.
                 return null;
             }
         }
+    }
+
+    //TODO set private!
 
     /**
      * Executes a move on the board.
@@ -278,10 +325,10 @@ public class ChessBoard implements Board, Cloneable {
      * @param rowTo The row to which the pawn is to be moved.
      */
     public void makeMove(Pawn pawn, int colTo, int rowTo) {
+        assert pawn != null;
+        assert colTo > 1 && colTo <= SIZE && rowTo > 1 && rowTo <= SIZE;
 
-        //TODO: throw exception? maybe IllegalMoveException?
-        if (isLegalMove(pawn, colTo, rowTo) //&& !isGameOver()
-        ) {
+        if (isLegalMove(pawn, colTo, rowTo)) {
 
             // Determine whether a hostile pawn is at the finish position of
             // the move.
@@ -300,8 +347,19 @@ public class ChessBoard implements Board, Cloneable {
 
 
     //TODO in hilfsmethoden aufteilen
-    //TODO defensiv auf depth reagieren
+
+    /**
+     * Creates a value for a Chessboard by inspecting the positions of the
+     * pawns. A high return value indicates a board favorable to the machine
+     * player.
+     *
+     * @param depth The depth which this board has within the look-ahead-tree
+     *              {@code Node} that determines the machines next move.
+     * @return The value of the board indicating if its pawns are in a
+     * favorable position.
+     */
     public double createBoardRating(int depth) {
+        assert depth > 0;
 
         // List of humans pawns.
         List<Pawn> humanPawns = getPawnsList(getHumanColor());
@@ -385,7 +443,7 @@ public class ChessBoard implements Board, Cloneable {
                 amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
 
         double v;
-        if (depth != 0 && isGameOver()) {
+        if (isGameOver()) {
 
             // Player which might have won by playing the last move.
             if (getWinner() == Player.HUMAN) {
@@ -407,6 +465,7 @@ public class ChessBoard implements Board, Cloneable {
             // Victory value for root.
             v = 0;
         }
+
 /*
         System.out.println();
         System.out.println(n);
@@ -419,8 +478,6 @@ public class ChessBoard implements Board, Cloneable {
         return n + d + c + i + v;
     }
 
-    //TODO: defensiv auf pawn reagieren?
-
     /**
      * Determines whether a pawn has neighbors within a one tile radius from
      * the same player.
@@ -431,20 +488,19 @@ public class ChessBoard implements Board, Cloneable {
      */
     private boolean isPawnIsolated(Pawn pawn) {
 
+        assert pawn != null;
+        assert whitePawns.contains(pawn) || blackPawns.contains(pawn);
+
         //Circles around the pawns position
         for (int col = -1; col <= 1; col++) {
             for (int row = -1; row <= 1; row++) {
 
-                // The pawn that be neighboring and from the same player.
-                Pawn possibleNeighborPawn = null;
-                try {
-                    possibleNeighborPawn = getPawn(pawn.getColumn() + col,
-                            pawn.getRow() + row);
-                } catch (IllegalArgumentException exception) {
-                    // Do nothing.
-                }
+                // The pawn that is neighboring and from the same player.
+                Pawn possibleNeighborPawn;
 
-                //TODO getColor exc catchen?
+                possibleNeighborPawn = getPawn(pawn.getColumn() + col,
+                        pawn.getRow() + row);
+
                 if (possibleNeighborPawn != null
                         && !possibleNeighborPawn.equals(pawn)
                         && getColor(possibleNeighborPawn)
@@ -456,10 +512,10 @@ public class ChessBoard implements Board, Cloneable {
                 }
             }
         }
+
+        // If there is no other pawn from the same player the pawn is isolated.
         return true;
     }
-
-    //TODO: defensiv auf pawn reagieren?
 
     /**
      * Determines which hostile pawns could be attacked by the given pawn.
@@ -468,56 +524,41 @@ public class ChessBoard implements Board, Cloneable {
      *             pawns.
      * @return List of hostile pawns which are threatened. {@code null} if
      * there are none.
-     * @throws IllegalArgumentException May be thrown if the pawn does not
-     *                                  belong to one of the players.
      */
     private List<Pawn> determineThreatenedPawns(Pawn pawn) {
 
-        //TODO ist das überhaupt notwendig?
-        // ja -> in unserem kontext nur so sinnvoll
-        //nein -> wieso sollte es nicht in einem anderen kontext verwendet
-        // werden dürfen? -> wieder entfernen
-        if (!(whitePawns.contains(pawn) || blackPawns.contains(pawn))) {
-            throw new IllegalArgumentException("The pawn needs to be on "
-                    + "the board and assigned to one of the players.");
-        }
+        assert pawn != null;
+        assert whitePawns.contains(pawn) || blackPawns.contains(pawn);
 
         List<Pawn> threatenedPawns = new ArrayList<>();
-
-        //TODO hier exc catchen? -> sonst gleich in if-Bed ziehen
         Color pawnColor = getColor(pawn);
 
-        int flag = 1; // Pawn is facing north
-        if (pawnColor != getHumanColor()) { // Pawn is facing south;
-            flag = -1;
+        int flag; // Indicator for the direction in which the pawn is facing.
+        if (pawnColor != getHumanColor()) {
+            flag = -1; // Pawn is facing south;
+        } else {
+            flag = 1; // Pawn is facing north
         }
 
-        Pawn attackedPawn;
-        try {
+        Pawn attackedPawn = getPawn(pawn.getColumn() - 1,
+                pawn.getRow() + flag);
 
-            attackedPawn = getPawn(pawn.getColumn() - 1,
-                    pawn.getRow() + flag);
-
-            // Add to list if diagonal left attack possible.
-            if (attackedPawn != null
-                    && Color.getOppositeColor(pawnColor) == getColor(attackedPawn)) {
-                threatenedPawns.add(attackedPawn);
-            }
-
-            attackedPawn = getPawn(pawn.getColumn() + 1,
-                    pawn.getRow() + flag);
-
-            // Add to list if diagonal right attack possible.
-            if (attackedPawn != null
-                    && Color.getOppositeColor(pawnColor) == getColor(attackedPawn)) {
-                threatenedPawns.add(attackedPawn);
-            }
-
-        } catch (IllegalArgumentException exception) {
-            // Do nothing.
+        // Add to list if diagonal left attack possible.
+        if (attackedPawn != null
+                && Color.getOppositeColor(pawnColor)
+                == getColor(attackedPawn)) {
+            threatenedPawns.add(attackedPawn);
         }
 
+        attackedPawn = getPawn(pawn.getColumn() + 1,
+                pawn.getRow() + flag);
 
+        // Add to list if diagonal right attack possible.
+        if (attackedPawn != null
+                && Color.getOppositeColor(pawnColor)
+                == getColor(attackedPawn)) {
+            threatenedPawns.add(attackedPawn);
+        }
         return threatenedPawns;
     }
 
@@ -527,39 +568,26 @@ public class ChessBoard implements Board, Cloneable {
      * @param pawn The pawn that is examined.
      * @return Return {@code true} if the pawn has protection. Otherwise
      * return {@code false}.
-     * @throws IllegalArgumentException May be thrown if the pawn does not
-     *                                  belong to one of the players.
      */
-    public boolean isPawnProtected(Pawn pawn)
-            throws IllegalArgumentException {
+    private boolean isPawnProtected(Pawn pawn) {
 
-        if (!(whitePawns.contains(pawn) || blackPawns.contains(pawn))) {
-            throw new IllegalArgumentException("The pawn needs to be on "
-                    + "the board and assigned to one of the players.");
-        }
+        assert pawn != null;
+        assert whitePawns.contains(pawn) || blackPawns.contains(pawn);
 
-        int flag = 1; // Pawn is facing north.
-        if (getColor(pawn) == getHumanColor()) {
-            flag = -1; // Pawn is facing south.
+        int flag; // Indicator for the direction in which the pawn is facing.
+        if (getColor(pawn) != getHumanColor()) {
+            flag = -1; // Pawn is facing south;
+        } else {
+            flag = 1; // Pawn is facing north
         }
 
         // The pawn that would be protecting from the left side.
-        Pawn leftBehind = null;
-        try {
-            leftBehind = getPawn(pawn.getColumn() - 1,
-                    pawn.getRow() + flag);
-        } catch (IllegalArgumentException exception) {
-            // Do nothing.
-        }
+        Pawn leftBehind = getPawn(pawn.getColumn() - 1,
+                pawn.getRow() + flag);
 
         // The pawn that would be protecting from the right side.
-        Pawn rightBehind = null;
-        try {
-            rightBehind = getPawn(pawn.getColumn() + 1,
-                    pawn.getRow() + flag);
-        } catch (IllegalArgumentException exception) {
-            // Do nothing.
-        }
+        Pawn rightBehind = getPawn(pawn.getColumn() + 1,
+                pawn.getRow() + flag);
 
         // Determine whether the pawn is protected either from the left or
         // the right.
@@ -573,15 +601,10 @@ public class ChessBoard implements Board, Cloneable {
      * @param pawns The list from which the pawns are being looked for in the
      *              given row.
      * @return The amount of pawns from the given list in the given row.
-     * @throws IllegalArgumentException Might be thrown if the row is not on
-     *                                  the board.
      */
-    public int amountOfPawnsInRow(int row, List<Pawn> pawns) {
+    private int amountOfPawnsInRow(int row, List<Pawn> pawns) {
 
-        if (row < 1 || row > SIZE) {
-            throw new IllegalArgumentException("The row must be within the "
-                    + "limits of the board.");
-        }
+        assert row >= 1 && row <= SIZE;
 
         int amount = 0;
         for (Pawn pawn : pawns) {
@@ -592,6 +615,9 @@ public class ChessBoard implements Board, Cloneable {
         return amount;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isGameOver() {
 
@@ -602,8 +628,8 @@ public class ChessBoard implements Board, Cloneable {
         // List pawns that start in the lowest row.
         List<Pawn> lowerRowPawns = getPawnsList(getHumanColor());
 
-
-        if (whitePawns.isEmpty() || blackPawns.isEmpty()) {
+        // Determine if one player has run out of pawns.
+        if (upperRowPawns.isEmpty() || lowerRowPawns.isEmpty()) {
             return true;
         }
 
@@ -618,8 +644,11 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Board machineMove() {
+    public Board machineMove() throws IllegalMoveException {
 
         if (nextPlayer != Player.MACHINE) {
             throw new IllegalMoveException("It is not the machine player's "
@@ -630,7 +659,6 @@ public class ChessBoard implements Board, Cloneable {
         } else if (hasToSuspend(nextPlayer)) {
             throw new IllegalMoveException("The machine has to suspend this "
                     + "move.");
-            //TODO oder doch lieber null
         } else {
 
             // Board on which the move is executed.
@@ -642,11 +670,24 @@ public class ChessBoard implements Board, Cloneable {
             newBoard.constructTree(root, Player.MACHINE.getLevel());
             newBoard.assignValues(root);
 
-            return (Board) root.getBestChild();
+            //TODO
+            System.out.println(root.getChildWithHighestValue().getValue());
+
+            //TODO wird nextPlayer schon durch possibleMoves richtig gesetzt?
+            return root.getChildWithHighestValue().getContent();
         }
     }
 
-    public void constructTree(Node<ChessBoard> node, int level) {
+    /**
+     * Recursively constructs a sub tree of node with possible moves.
+     *
+     * @param node  The root of the sub tree.
+     * @param level The difficulty level of the machine if the node is the
+     *              actual root. Otherwise it is the machine level subtracted
+     *              by the depth in the tree.
+     */
+    private void constructTree(Node<ChessBoard> node, int level) {
+        assert node != null;
         if (level > 0) {
 
             // Create child nodes for node.
@@ -659,57 +700,67 @@ public class ChessBoard implements Board, Cloneable {
                 node.addChild(child);
                 possibleMove.constructTree(child, level - 1);
             }
-            /*
-            // In case the player has to suspend a move let the other
-            // player move.
-            //TODO ich glaube mein neuse setnextplayer macht das überflüßßig?
-            if (possibleMoves(nextPlayer).isEmpty() &&!isGameOver()) {
-                if (!board.isGameOver()) {
-                    if (getNextPlayer() == Player.HUMAN) {
-                        board.setNextPlayer(Player.MACHINE);
-                        createChildren(Player.MACHINE);
-                    } else {
-                        board.setNextPlayer(Player.HUMAN);
-                        createChildren(Player.HUMAN);
-                    }
-             */
         }
     }
 
+    /**
+     * Recursivel assigns values to the boards within the tree represented by
+     * the {@code node}. A min-max algorithm is employed.
+     *
+     * @param node The node representing the root of the tree for which the
+     *             values are assigned.
+     */
+    private void assignValues(Node<ChessBoard> node) {
 
-    public void assignValues(Node<ChessBoard> node) {
+        assert node != null;
 
         if (node.getChildren().isEmpty()) {
 
-            // Assign value to leaf.
+            // Assign a value to a leaf node.
             node.setValue(node.getContent().createBoardRating(node.getHeight()));
         } else {
 
             // Recursively assign values to children.
-            for (Node child : node.getChildren()) {
-                assignValues(child);
+            for (Node<ChessBoard> child : node.getChildren()) {
+
+                if (child.getValue() == Integer.MIN_VALUE) {
+
+                    // If the child does not have a calculated value.
+                    assignValues(child);
+                }
+
             }
 
-            // Assign value to inner node.
+            // Assign a value to an inner node.
             if (getNextPlayer() == Player.HUMAN) {
                 node.setValue(node.getContent().createBoardRating(node.getHeight())
-                        + node.getWorstChild().getValue());
+                        + node.getChildWithLowestValue().getValue());
             } else {
                 node.setValue(node.getContent().createBoardRating(node.getHeight())
-                        + node.getBestChild().getValue());
+                        + node.getChildWithHighestValue().getValue());
             }
         }
     }
 
-    //TODO not d1!!
+    /**
+     * Determines whether a player has to suspend his next move.
+     *
+     * @param player The player whose pawns are examined.
+     * @return Return {@code true} if the player has to suspend. Return
+     * {@code false} otherwise.
+     */
     private boolean hasToSuspend(Player player) {
         return possibleMoves(player).isEmpty();
     }
 
-    //TODO create method bool canMove(player) which checks if possileMoves
-    // .isempty
-    // TODO use flag!
-    //TODO möglicherweise attribut nextplayer entfernbar?
+    /**
+     * Determines all the moves that a player can make in a left to right
+     * order (a normal move forward comes before a double move forward).
+     *
+     * @param player The player whose pawns are examined.
+     * @return A list of boards where each board has a possible move executed
+     * on itself.
+     */
     public List<ChessBoard> possibleMoves(Player player) {
 
         // Assign parameter player as next player in order to accurately
@@ -773,41 +824,47 @@ public class ChessBoard implements Board, Cloneable {
         // List of possibleMoves by the given player.
         List<ChessBoard> possibleMoves = new ArrayList<>();
 
-        int flag = 1;
+        int flag; // Indicator for the direction in which the pawn is facing.
         if (player == Player.MACHINE) {
-            flag = -1;
+            flag = -1; // Pawn is facing south;
+        } else {
+            flag = 1; // Pawn is facing north
         }
 
         for (Pawn pawn : pawns) {
             for (Direction direction : Direction.values()) {
+                if (direction != Direction.ILLEGAL_DIRECTION) {
+                    int colTo;
+                    int rowTo;
+                    if (direction == Direction.FORWARD) {
+                        colTo = pawn.getColumn();
+                        rowTo = pawn.getRow() + flag;
+                    } else if (direction == Direction.DOUBLE_FORWARD) {
+                        colTo = pawn.getColumn();
+                        rowTo = pawn.getRow() + 2 * flag;
+                    } else if (direction == Direction.DIAGONAL_LEFT) {
+                        colTo = pawn.getColumn() - flag;
+                        rowTo = pawn.getRow() + flag;
+                    } else {
+                        colTo = pawn.getColumn() + flag;
+                        rowTo = pawn.getRow() + flag;
+                    }
 
-                int colTo;
-                int rowTo;
-                if (direction == Direction.FORWARD) {
-                    colTo = pawn.getColumn();
-                    rowTo = pawn.getRow() + flag;
-                } else if (direction == Direction.DOUBLE_FORWARD) {
-                    colTo = pawn.getColumn();
-                    rowTo = pawn.getRow() + 2 * flag;
-                } else if (direction == Direction.DIAGONAL_LEFT) {
-                    colTo = pawn.getColumn() - flag;
-                    rowTo = pawn.getRow() + flag;
-                } else {
-                    colTo = pawn.getColumn() + flag;
-                    rowTo = pawn.getRow() + flag;
-                }
+                    // Determine if the move is legal and an actual movement
+                    // takes place.
+                    if (isLegalMove(pawn, colTo, rowTo)) {
 
-                // Determine if the move is legal and an actual movement
-                // takes place.
-                if (isLegalMove(pawn, colTo, rowTo)) {
+                        ChessBoard boardClone = (ChessBoard) this.clone();
 
-                    ChessBoard boardClone = (ChessBoard) this.clone();
+                        //TODO getPawn verletzung klassengeheimnis?? aber wiesonst
+                        boardClone.makeMove(boardClone.getPawn(pawn.getColumn(),
+                                pawn.getRow()), colTo, rowTo);
 
-                    //TODO getPawn verletzung klassengeheimnis?? aber wiesonst
-                    boardClone.makeMove(boardClone.getPawn(pawn.getColumn(),
-                            pawn.getRow()), colTo, rowTo);
-                    boardClone.nextPlayer = Player.getOppositePlayer(player);
-                    possibleMoves.add(boardClone);
+                        //TODO see if hasToSuspend? no schleife!
+                        boardClone.nextPlayer
+                                = Player.getOppositePlayer(actualNextPlayer);
+                        possibleMoves.add(boardClone);
+                    }
                 }
             }
         }
@@ -817,6 +874,11 @@ public class ChessBoard implements Board, Cloneable {
         return possibleMoves;
     }
 
+    /**
+     * Deep clones an instance of {@code ChessBoard}.
+     *
+     * @return Returns a deep clone of a board.
+     */
     @Override
     public Board clone() {
         ChessBoard copy;
@@ -844,6 +906,9 @@ public class ChessBoard implements Board, Cloneable {
         return copy;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setLevel(int level) throws IllegalArgumentException {
         if (level > 0) {
@@ -853,6 +918,9 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Player getWinner() throws IllegalCallerException {
 
@@ -863,6 +931,8 @@ public class ChessBoard implements Board, Cloneable {
             //List of pawns belonging to machine player.
             List<Pawn> machinePawns = getPawnsList(
                     Color.getOppositeColor(getHumanColor()));
+
+            //TODO STALEMATE -> player with more pawns wins.
 
             // List of pawns belonging to human player.
             List<Pawn> humanPawns = getPawnsList(getHumanColor());
@@ -892,25 +962,18 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
+    //TODO private
+
     /**
      * Returns a pawn in a specified position. If there is no pawn at that
      * place null will be returned.
      *
      * @param col The column in which to look for the pawn.
      * @param row The row in which to look for the pawn.
-     * @return The pawn at the given position
-     * @throws IllegalArgumentException May be thrown if the pawn is within
-     *                                  the board's limits.
+     * @return The pawn at the given position or {@code null} if there is no
+     * pawn at that position or if the position is not within the board.
      */
-    public Pawn getPawn(int col, int row) throws IllegalArgumentException {
-
-        //TODO defensiv: z.B. eingabe außerhalb von Feld (ne das würd die
-        // implementierung von isPawnProtected zerficken) oder color none
-
-        if (col < 1 || col > SIZE || row < 1 || row > SIZE) {
-            throw new IllegalArgumentException("This position is not within "
-                    + "the board.");
-        }
+    public Pawn getPawn(int col, int row) {
 
         // Determine whether a white pawn is on this tile.
         for (Pawn whitePawn : whitePawns) {
@@ -930,19 +993,16 @@ public class ChessBoard implements Board, Cloneable {
         return null;
     }
 
-    //TODO inheritDoc um throws erweitern
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Color getSlot(int col, int row) throws IllegalArgumentException {
-
-        Pawn pawn;
-        try {
-            pawn = getPawn(col, row);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("The slot must be within the "
-                    + "limits of the board.");
+        if (col < 1 || col > SIZE || row < 1 || row > SIZE) {
+            throw new IllegalArgumentException("The given coordinates mustbe "
+                    + "within the board.");
         }
-
-        return getColor(pawn);
+        return getColor(getPawn(col, row));
     }
 
     /**
@@ -953,16 +1013,19 @@ public class ChessBoard implements Board, Cloneable {
      * the two players {@code Color.NONE} will be returned.
      */
     private Color getColor(Pawn pawn) {
+        assert pawn != null;
+        assert whitePawns.contains(pawn) || blackPawns.contains(pawn);
 
         if (whitePawns.contains(pawn)) {
             return Color.WHITE;
-        } else if (blackPawns.contains(pawn)) {
-            return Color.BLACK;
         } else {
-            return Color.NONE;
+            return Color.BLACK;
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getNumberOfTiles(Player player) {
         if (player.getColor() == Color.WHITE) {
@@ -977,52 +1040,35 @@ public class ChessBoard implements Board, Cloneable {
      *
      * @param listColor The color of the pawns whose list is to be returned.
      * @return The pawns list for the given color.
-     * @throws IllegalArgumentException Might be thrown if the given color
-     *                                  does not have an associated list of
-     *                                  pawns with that color.
      */
-    private List<Pawn> getPawnsList(Color listColor)
-            throws IllegalArgumentException {
+    private List<Pawn> getPawnsList(Color listColor) {
+        assert listColor != null;
         if (listColor == Color.WHITE) {
             return whitePawns;
-        } else if (listColor == Color.BLACK) {
-            return blackPawns;
         } else {
-            throw new IllegalArgumentException("The given color does not have"
-                    + " list of pawns");
+            return blackPawns;
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Color getHumanColor() {
         return Player.HUMAN.getColor();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Player getNextPlayer() {
         return nextPlayer;
     }
 
     /**
-     * If the opposing player, to the one which just moved, can make a move
-     * he is assigned to be the next player.
-     * Otherwise the player who just moved will remain to be assigned as the
-     * next player.
-     * This method should only be used after a move was executed.
+     * {@inheritDoc}
      */
-    //TODO erzeugt unendlich Schleife -> ersetzen
-    private void setNextPlayer() {
-
-        // Assume the regular next player does not have to skip.
-        nextPlayer = (Player.getOppositePlayer(nextPlayer));
-
-        if (!hasToSuspend(nextPlayer)) {
-
-            // If he does have to skip, reverse the assumption.
-            nextPlayer = Player.getOppositePlayer(nextPlayer);
-        }
-    }
-
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

@@ -1,7 +1,7 @@
 package model.chessboard;
 
 public enum Direction {
-//TODOO bessere Name vllt MoveVector oder MoveType
+
     /**
      * Move pawn left, then forward from the pawns viewpoint toward his
      * finish row.
@@ -22,6 +22,11 @@ public enum Direction {
      * Move pawn right, then forward from the pawns viewpoint toward his
      * finish row.
      */
-    DIAGONAL_RIGHT
+    DIAGONAL_RIGHT,
+
+    /**
+     * An illegal direction.
+     */
+    ILLEGAL_DIRECTION
 
 }

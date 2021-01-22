@@ -1,6 +1,7 @@
 package model.chessboard;
 
 import model.player.Player;
+import model.exceptions.IllegalMoveException;
 
 /**
  * Interface for a Pawns Chess game, a lite variant of chess. The only tiles are

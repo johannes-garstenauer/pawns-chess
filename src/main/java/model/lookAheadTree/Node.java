@@ -11,7 +11,7 @@ public class Node<T> {
     private int height;
 
     //TODO unschön
-    private double value; //= Integer.MIN_VALUE;
+    private double value = Integer.MIN_VALUE;
 
     public Node(T content, Node<T> parent, int height) {
         this.content = content;
@@ -44,24 +44,25 @@ public class Node<T> {
         return height;
     }
     //TODO in Board?
-    public Node<T> getBestChild() {
+
+
+    //TODO combine zu getChildMinMax (boolean max, boolean min) unschön :/
+    public Node<T> getChildWithHighestValue() {
 
         // Temporarily chosen Node representing the best Move
-        Node<T> temp = null;
+        Node<T> temp = new Node<>(null,null,0);
 
-        // Value of the chosen Node
+        // Value of the best Node
         double tempValue = Integer.MIN_VALUE;
         for (Node<T> child : children) {
-            //TODO put this calculation in if clause
-            int doubleComp = Double.compare(child.value, tempValue);
-            if (doubleComp > 0) {
+            if (Double.compare(child.value, tempValue) > 0) {
                 temp = child;
                 tempValue = child.value;
             }
         }
 
-        if (temp == null) {
-            //TODO: right exc??
+        // Determine if the temporary node is till the original node.
+        if (temp.getContent() == null) {
             throw new IllegalCallerException("This tree has no children!");
         } else {
             return temp;
@@ -69,24 +70,22 @@ public class Node<T> {
     }
 
     //TODO: combine with getBestMove
-    public Node<T> getWorstChild() {
+    public Node<T> getChildWithLowestValue() {
 
         // Temporarily chosen Node representing the best Move
-        Node<T> temp = null;
+        Node<T> temp = new Node<>(null,null,0);
 
-        // Value of the chosen Node
+        // Value of the worst Node
         double tempValue = Integer.MAX_VALUE;
         for (Node<T> child : this.children) {
-            int doubleComp = Double.compare(child.value, tempValue);
-            if (doubleComp < 0) {
+            if (Double.compare(child.value, tempValue) < 0) {
                 temp = child;
                 tempValue = child.value;
             }
         }
 
-        if (temp == null) {
-            //TODO: right exc??
-            //ablaufsteuerung mit exc?
+        // Determine if the temporary node is till the original node.
+        if (temp.getContent() == null) {
             throw new IllegalCallerException("This tree has no children!");
         } else {
             return temp;
