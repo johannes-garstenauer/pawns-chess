@@ -93,8 +93,8 @@ public class Pawn implements Cloneable {
 
     /**
      * This indicates whether a pawn has already been moved.
-     * <p>
-     * Return {@code true} if the pawns has moved. Otherwise return
+     *
+     * @return Return {@code true} if the pawns has moved. Otherwise return
      * {@code false}.
      */
     public boolean isOpeningMove() {
@@ -129,8 +129,10 @@ public class Pawn implements Cloneable {
     /**
      * A setter in order to change the {@code column} of the pawn on the board.
      *
+     * @param column The column to which the pawn is set on the board.
      * @throws IllegalArgumentException Might be thrown if given position is
-     *                                  illegal e.g. not within the board's confines.
+     *                                  illegal e.g. not within the board's
+     *                                  confines.
      */
     public void setColumn(int column) throws IllegalArgumentException {
         if (column < 1 || column > Board.SIZE) {
@@ -143,8 +145,10 @@ public class Pawn implements Cloneable {
     /**
      * A setter in order to change the {@code row} of the pawn on the board.
      *
+     * @param row The row to which the pawn is set on the board.
      * @throws IllegalArgumentException Might be thrown if given position is
-     *                                  illegal e.g. not within the board's confines.
+     *                                  illegal e.g. not within the board's
+     *                                  confines.
      */
     public void setRow(int row) throws IllegalArgumentException {
         if (row < 1 || row > Board.SIZE) {

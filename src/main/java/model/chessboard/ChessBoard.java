@@ -667,9 +667,7 @@ public class ChessBoard implements Board, Cloneable {
         if (level > 0) {
 
             // Create child nodes for node.
-            for (ChessBoard possibleMove:
-                    possibleMoves(nextPlayer)) {
-
+            for (ChessBoard possibleMove: possibleMoves(nextPlayer)) {
                 Node<ChessBoard> child =
                         new Node<>(possibleMove, node, level - 1);
 

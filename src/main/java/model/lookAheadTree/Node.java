@@ -115,7 +115,7 @@ public class Node<T> {
     public Node<T> getChildWithHighestValue() {
 
         // Temporarily chosen Node representing the best Move
-        Node<T> temp = new Node<>(null,null,0);
+        Node<T> temp = new Node<>(null, null, 0);
 
         // Value of the best Node
         double tempValue = Integer.MIN_VALUE;
@@ -143,7 +143,7 @@ public class Node<T> {
     public Node<T> getChildWithLowestValue() {
 
         // Temporarily chosen Node representing the best Move
-        Node<T> temp = new Node<>(null,null,0);
+        Node<T> temp = new Node<>(null, null, 0);
 
         // Value of the worst Node
         double tempValue = Integer.MAX_VALUE;
