@@ -112,12 +112,12 @@ public class Node<T> {
      *
      * @return Returns the child with the highest node.
      */
-    public Node<T> getChildWithHighestValue() {
+    public Node<T> getMaxChild() {
 
-        // Temporarily chosen Node representing the best Move
+        // Temporarily chosen Node representing the best move.
         Node<T> temp = new Node<>(null, null, 0);
 
-        // Value of the best Node
+        // Value of the currently best node.
         double tempValue = Integer.MIN_VALUE;
         for (Node<T> child : children) {
             if (Double.compare(child.value, tempValue) > 0) {
@@ -140,12 +140,12 @@ public class Node<T> {
      *
      * @return Returns the child with the lowest node.
      */
-    public Node<T> getChildWithLowestValue() {
+    public Node<T> getMinChild() {
 
-        // Temporarily chosen Node representing the best Move
+        // Temporarily chosen node representing the best move.
         Node<T> temp = new Node<>(null, null, 0);
 
-        // Value of the worst Node
+        // Value of the currently worst node.
         double tempValue = Integer.MAX_VALUE;
         for (Node<T> child : this.children) {
             if (Double.compare(child.value, tempValue) < 0) {

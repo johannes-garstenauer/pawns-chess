@@ -151,14 +151,23 @@ public final class Shell {
                         + " This would move the pawn at column one and row "
                         + "three to  column one and row four.");
             } catch (IllegalArgumentException illegalArgumentException) {
-                printError(illegalArgumentException.getMessage());
+                //TODO das notwendig für prakto -> edge case probleme?
+                // printError(illegalArgumentException.getMessage());
+                //TODO must be caught!
+                //TODO reihenfolge hier ändern?
             } catch (IllegalMoveException illegalMoveException) {
                 if (gameBoard.isGameOver()) {
                     announceWinner(gameBoard);
-                } else {
-                    //TODO Prompt?
-                    System.out.println(illegalMoveException.getMessage());
                 }
+                //TODO das notwendig für prakto -> edge case probleme?
+                //TODO must be caught!
+                /*
+                else {
+                    //TODO Prompt?
+                   // System.out.println(illegalMoveException.getMessage());
+                }
+
+                 */
             }
 
             if (moveBoard == null) {
@@ -201,8 +210,7 @@ public final class Shell {
      */
     private static void announceWinner(Board gameBoard) {
         assert gameBoard != null;
-
-        System.out.println(PROMPT + "This game has ended!");
+        //TODO: prompt?
         printBoard(gameBoard);
         if (gameBoard.getWinner() == Player.HUMAN) {
             System.out.println("Congratulations! You won.");

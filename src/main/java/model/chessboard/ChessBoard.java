@@ -20,17 +20,13 @@ public class ChessBoard implements Board, Cloneable {
 
     /**
      * The pawns of the player with the white color.
-      */
+     */
     public List<Pawn> whitePawns = new ArrayList<>();
 
     /**
      * The pawns of the player with the black color.
      */
     public List<Pawn> blackPawns = new ArrayList<>();
-
-    //TODO andauernde brechung des klassengeheimnis könnte verhindert werden,
-    // indem man anfangs ein 2d array initialisiert -> leichter zugriff auf
-    // ob pawn an bestimmter posi.
 
     /**
      * This is the constructor of an implementation of a {@code Board} for
@@ -136,7 +132,6 @@ public class ChessBoard implements Board, Cloneable {
         int rowDist = rowTo - rowFrom;
 
         // Make sure that the move is not in the wrong the direction.
-        //TODO nicht nextplayer sondern currentplayer??
         if ((getNextPlayer() == Player.HUMAN && !(rowDist > 0))
                 || (getNextPlayer() == Player.MACHINE && !(rowDist < 0))) {
             return Direction.ILLEGAL_DIRECTION;
@@ -184,8 +179,6 @@ public class ChessBoard implements Board, Cloneable {
             return false;
         } else {
 
-            //TODO verletzung klassengeheimnis könnte man durch
-            // umbaung verhindern.
             Direction direction = determineDirection(pawn.getColumn(),
                     pawn.getRow(), colTo, rowTo);
 
@@ -295,8 +288,6 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
-    //TODO set private!
-
     /**
      * Executes a move on the board.
      *
@@ -304,7 +295,7 @@ public class ChessBoard implements Board, Cloneable {
      * @param colTo The column to which the pawn is to be moved.
      * @param rowTo The row to which the pawn is to be moved.
      */
-    public void makeMove(Pawn pawn, int colTo, int rowTo) {
+    private void makeMove(Pawn pawn, int colTo, int rowTo) {
         assert pawn != null;
 
         if (isLegalMove(pawn, colTo, rowTo)) {
@@ -324,9 +315,6 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
-
-    //TODO in hilfsmethoden aufteilen
-
     /**
      * Creates a value for a Chessboard by inspecting the positions of the
      * pawns. A high return value indicates a board favorable to the machine
@@ -337,7 +325,7 @@ public class ChessBoard implements Board, Cloneable {
      * @return The value of the board indicating if its pawns are in a
      * favorable position.
      */
-    public double createBoardRating(int depth) {
+    private double createBoardRating(int depth) {
         assert depth >= 0;
 
         // List of humans pawns.
@@ -347,14 +335,51 @@ public class ChessBoard implements Board, Cloneable {
         List<Pawn> machinePawns =
                 getPawnsList(Color.getOppositeColor(getHumanColor()));
 
-        double n = machinePawns.size() - 1.5 * humanPawns.size();
+        double n = calculateValueN(humanPawns, machinePawns);
+
+        double d = calculateValueD(humanPawns, machinePawns);
+
+        double c = calculateValueC(humanPawns, machinePawns);
+
+        double i = calculateValueI(humanPawns, machinePawns);
+
+        double v = calculateValueV(humanPawns, machinePawns, depth);
+        return n + d + c + i + v;
+    }
+
+    /**
+     * Returns a value which indicates whether the amount of pawns for each
+     * player is in favor of the machine player.
+     *
+     * @param humanPawns   The list of pawns that belong to the human player.
+     * @param machinePawns The list of pawns that belong to the machine player.
+     * @return The value regarding the amount of pawns.
+     */
+    private double calculateValueN(List<Pawn> humanPawns,
+                                   List<Pawn> machinePawns) {
+        assert humanPawns != null && machinePawns != null;
+
+        return machinePawns.size() - 1.5 * humanPawns.size();
+    }
+
+    /**
+     * Returns a value which indicates whether the distance travelled by
+     * all pawns is favourable for the machine player.
+     *
+     * @param humanPawns   The list of pawns that belong to the human player.
+     * @param machinePawns The list of pawns that belong to the machine player.
+     * @return The value regarding the distance travelled by pawns.
+     */
+    private double calculateValueD(List<Pawn> humanPawns,
+                                   List<Pawn> machinePawns) {
+        assert humanPawns != null && machinePawns != null;
 
         int machinePawnsMovedFactor = 0;
         for (int i = 0; i < SIZE; i++) {
 
             machinePawnsMovedFactor = machinePawnsMovedFactor
-                            + amountOfPawnsInRow(SIZE - i,
-                                    machinePawns) * i;
+                    + amountOfPawnsInRow(SIZE - i,
+                    machinePawns) * i;
         }
 
 
@@ -366,7 +391,20 @@ public class ChessBoard implements Board, Cloneable {
                             humanPawns) * i;
         }
 
-        double d = machinePawnsMovedFactor - 1.5 * humanPawnsMovedFactor;
+        return machinePawnsMovedFactor - 1.5 * humanPawnsMovedFactor;
+    }
+
+    /**
+     * Returns a value which indicates whether the amount of pawns that are
+     * threatened but not protected is favourable to the machine player-
+     *
+     * @param humanPawns   The list of pawns that belong to the human player.
+     * @param machinePawns The list of pawns that belong to the machine player.
+     * @return The value regarding the amount of threatened pawns.
+     */
+    private double calculateValueC(List<Pawn> humanPawns,
+                                   List<Pawn> machinePawns) {
+        assert humanPawns != null && machinePawns != null;
 
         List<Pawn> threatenedHumanPawns = new ArrayList<>();
 
@@ -400,8 +438,21 @@ public class ChessBoard implements Board, Cloneable {
 
         int amountOfThreatenedMachinePawns = threatenedMachinePawns.size();
 
-        double c = amountOfThreatenedHumanPawns
+        return amountOfThreatenedHumanPawns
                 - 1.5 * amountOfThreatenedMachinePawns;
+    }
+
+    /**
+     * Returns a value which indicates whether the amount of pawns that are
+     * isolated from other friendly pawns is favourable to the machine player.
+     *
+     * @param humanPawns   The list of pawns that belong to the human player.
+     * @param machinePawns The list of pawns that belong to the machine player.
+     * @return The value regarding the amount of isolated pawns.
+     */
+    private double calculateValueI(List<Pawn> humanPawns,
+                                   List<Pawn> machinePawns) {
+        assert humanPawns != null && machinePawns != null;
 
         int amountOfIsolatedMachinePawns = 0;
         for (Pawn machinePawn : machinePawns) {
@@ -417,8 +468,24 @@ public class ChessBoard implements Board, Cloneable {
             }
         }
 
-        double i =
-                amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
+        return amountOfIsolatedHumanPawns - 1.5 * amountOfIsolatedMachinePawns;
+    }
+
+    /**
+     * Returns a value which indicates whether the the winner of the board is
+     * the machine or the human in relationship with how many moves it would
+     * take the player to reach this win. This will always return zero if
+     * nobody has won this board.
+     *
+     * @param humanPawns   The list of pawns that belong to the human player.
+     * @param machinePawns The list of pawns that belong to the machine player.
+     * @param depth        The depth of the given board in the look-ahead tree
+     *                     that determines the machines next move.
+     * @return The value regarding the winner of the board.
+     */
+    private double calculateValueV(List<Pawn> humanPawns,
+                                   List<Pawn> machinePawns, int depth) {
+        assert humanPawns != null && machinePawns != null;
 
         double v;
         if (isGameOver() && depth != 0) {
@@ -426,33 +493,22 @@ public class ChessBoard implements Board, Cloneable {
             // Player which might have won by playing the last move.
             if (getWinner() == Player.HUMAN) {
 
-                // If the human has won.
-                v = -1.5 * 5000 / (double) depth;
+                // Case for if the human has won.
+                return -1.5 * 5000 / (double) depth;
             } else if (getWinner() == Player.MACHINE) {
 
-                // If the machine has won.
-                //TODO is cast necessary?
-                v = 5000 / (double) depth;
+                // Case for if the machine has won.
+                return 5000 / (double) depth;
             } else {
 
-                // If there is a draw.
-                v = 0;
+                // Case for ig there is a draw.
+                return 0;
             }
         } else {
 
-            // Victory value for root.
-            v = 0;
+            // Victory value for the root or if the game has not yet ended.
+            return 0;
         }
-/*
-        System.out.println();
-        System.out.println(n);
-        System.out.println(d);
-        System.out.println(c);
-        System.out.println(i);
-        System.out.println(v);
-        System.err.println("sum: " + (n + d + c + i + v));
- */
-        return n + d + c + i + v;
     }
 
     /**
@@ -650,7 +706,7 @@ public class ChessBoard implements Board, Cloneable {
             //System.out.println(root.getChildWithHighestValue().getValue());
 
             //TODO wird nextPlayer schon durch possibleMoves richtig gesetzt?
-            return root.getChildWithHighestValue().getContent();
+            return root.getMaxChild().getContent();
         }
     }
 
@@ -667,7 +723,7 @@ public class ChessBoard implements Board, Cloneable {
         if (level > 0) {
 
             // Create child nodes for node.
-            for (ChessBoard possibleMove: possibleMoves(nextPlayer)) {
+            for (ChessBoard possibleMove : possibleMoves(nextPlayer)) {
                 Node<ChessBoard> child =
                         new Node<>(possibleMove, node, level - 1);
 
@@ -688,6 +744,7 @@ public class ChessBoard implements Board, Cloneable {
 
         assert node != null;
 
+        //TODO Die ganze node.getContent sache ist unschön aber notwendig?
         if (node.getChildren().isEmpty()) {
 
             // Assign a value to a leaf node.
@@ -701,7 +758,7 @@ public class ChessBoard implements Board, Cloneable {
                 if (child.getValue() == Integer.MIN_VALUE) {
 
                     // If the child does not have a calculated value.
-                    assignValues(child);
+                    child.getContent().assignValues(child);
                 }
 
             }
@@ -710,11 +767,11 @@ public class ChessBoard implements Board, Cloneable {
             if (getNextPlayer() == Player.HUMAN) {
                 node.setValue(node.getContent()
                         .createBoardRating(node.getHeight())
-                        + node.getChildWithLowestValue().getValue());
+                        + node.getMinChild().getValue());
             } else {
                 node.setValue(node.getContent()
                         .createBoardRating(node.getHeight())
-                        + node.getChildWithHighestValue().getValue());
+                        + node.getMaxChild().getValue());
             }
         }
     }
@@ -738,7 +795,7 @@ public class ChessBoard implements Board, Cloneable {
      * @return A list of boards where each board has a possible move executed
      * on itself.
      */
-    public List<ChessBoard> possibleMoves(Player player) {
+    private List<ChessBoard> possibleMoves(Player player) {
 
         // Assign parameter player as next player in order to accurately
         // determine the legality of possible moves.
@@ -891,8 +948,6 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
-    //TODO private
-
     /**
      * Returns a pawn in a specified position. If there is no pawn at that
      * place null will be returned.
@@ -902,7 +957,7 @@ public class ChessBoard implements Board, Cloneable {
      * @return The pawn at the given position or {@code null} if there is no
      * pawn at that position or if the position is not within the board.
      */
-    public Pawn getPawn(int col, int row) {
+    private Pawn getPawn(int col, int row) {
 
         // Determine whether a white pawn is on this tile.
         for (Pawn whitePawn : whitePawns) {
@@ -928,7 +983,7 @@ public class ChessBoard implements Board, Cloneable {
     @Override
     public Color getSlot(int col, int row) throws IllegalArgumentException {
         if (col < 1 || col > SIZE || row < 1 || row > SIZE) {
-            throw new IllegalArgumentException("The given coordinates mustbe "
+            throw new IllegalArgumentException("The given coordinates must be "
                     + "within the board.");
         }
         return getColor(getPawn(col, row));
@@ -1003,9 +1058,14 @@ public class ChessBoard implements Board, Cloneable {
 
         for (int row = SIZE; row >= 1; row--) {
             for (int col = 1; col <= SIZE; col++) {
-                stringBuilder.append(getSlot(col, row).toString()).append(" ");
+                stringBuilder.append(getSlot(col, row).toString());
+                if (col != SIZE) {
+                    stringBuilder.append(" ");
+                }
             }
-            stringBuilder.append("\n");
+            if (row != 1) {
+                stringBuilder.append("\n");
+            }
         }
         return stringBuilder.toString();
     }

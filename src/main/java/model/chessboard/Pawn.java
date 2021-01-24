@@ -92,6 +92,14 @@ public class Pawn implements Cloneable {
     }
 
     /**
+     * Creates a hash code for a given pawn.
+     */
+    @Override
+    public int hashCode() {
+        return (column + "," + row + "," + hasMoved).hashCode();
+    }
+
+    /**
      * This indicates whether a pawn has already been moved.
      *
      * @return Return {@code true} if the pawns has moved. Otherwise return
