@@ -51,9 +51,21 @@ public final class Shell {
             }
 
             String[] tokenParts = WHITESPACE_SPLIT.split(input);
-            if ((tokenParts.length == 0) || tokenParts[0].isEmpty()) {
+
+            if (tokenParts.length == 0) {
                 printError("There is no command");
             } else {
+                if (tokenParts[0].isEmpty()) {
+
+                    // Remove initial whitespaces from the input tokens because
+                    // they are most likely accidental.
+                    String[] newTokenParts = new String[tokenParts.length - 1];
+                    for (int i = 0; i < newTokenParts.length; i++) {
+                        newTokenParts[i] = tokenParts[i + 1];
+                    }
+                    tokenParts = newTokenParts;
+                }
+
                 switch (tokenParts[0].toLowerCase().charAt(0)) {
                 case 'n':
                     gameBoard = constructNewBoard(tokenParts, gameBoard);
@@ -65,8 +77,8 @@ public final class Shell {
                     if (!(gameBoard == null)) {
                         setDifficultyLevel(tokenParts, gameBoard);
                     } else {
-                        printError("There is no board to set the level on. "
-                                + "Try command: 'NEW'.");
+                        printError("There is no board/machine opponent to "
+                                + "change the level on.\nTry command: 'NEW'.");
                     }
                     break;
                 case 'm':
@@ -90,7 +102,7 @@ public final class Shell {
                     break;
                 case 'p':
                     if (!(gameBoard == null)) {
-                        printBoard(gameBoard);
+                        printBoard(tokenParts, gameBoard);
                     } else {
                         printError("There is no board to print out. Try "
                                 + "command: 'NEW'.");
@@ -112,6 +124,7 @@ public final class Shell {
      * @param gameBoard  The board on which the action is performed.
      */
     private static Board executeSwitch(String[] tokenParts, Board gameBoard) {
+        assert gameBoard != null && tokenParts != null;
 
         if (hasCorrectAmountArguments(tokenParts, 1)) {
             humanColor = Color.getOppositeColor(humanColor);
@@ -135,6 +148,8 @@ public final class Shell {
      * @return The Board on which the move was executed
      */
     private static Board executeMoves(String[] tokenParts, Board gameBoard) {
+        assert gameBoard != null && tokenParts != null;
+
         if (hasCorrectAmountArguments(tokenParts, 5)) {
 
             // The board on which the move will be attempted.
@@ -148,29 +163,35 @@ public final class Shell {
                         Integer.parseInt(tokenParts[4]));
             } catch (NumberFormatException numberFormatException) {
                 printError("The command move contains four coordinates as "
-                        + "arguments. For example: 'move 1 3 1 4'."
-                        + " This would move the pawn at column one and row "
-                        + "three to  column one and row four.");
+                        + "arguments.\nFor example: 'move 1 3 1 4'.\n"
+                        + "This moves the pawn at column one and row "
+                        + "three to column one and row four.");
             } catch (IllegalArgumentException illegalArgumentException) {
-                System.out.println(illegalArgumentException.getMessage());
+                printError(illegalArgumentException.getMessage());
             } catch (IllegalMoveException illegalMoveException) {
                 if (gameBoard.isGameOver()) {
                     announceWinner(gameBoard);
                     return gameBoard;
                 } else {
-                    System.out.println(illegalMoveException.getMessage());
+                    printError(illegalMoveException.getMessage());
                 }
             }
 
             if (moveBoard == null) {
 
-                // If the move was invalid an error message will be
-                // displayed and the machine will not be allowed to move.
-                printError("Invalid move from ("
-                        + Integer.parseInt(tokenParts[1]) + ", "
-                        + Integer.parseInt(tokenParts[2]) + ") to ("
-                        + Integer.parseInt(tokenParts[3]) + ", "
-                        + Integer.parseInt(tokenParts[4]) + ").");
+                try {
+                    // If the move was invalid an error message will be
+                    // displayed and the machine will not be allowed to move.
+                    printError("Invalid move from ("
+                            + Integer.parseInt(tokenParts[1]) + ", "
+                            + Integer.parseInt(tokenParts[2]) + ") to ("
+                            + Integer.parseInt(tokenParts[3]) + ", "
+                            + Integer.parseInt(tokenParts[4]) + ").");
+                } catch (NumberFormatException numberFormatException) {
+
+                    // Do nothing as there already is an error message for
+                    // this scenario.
+                }
                 return gameBoard;
             } else {
                 gameBoard = moveBoard;
@@ -215,12 +236,15 @@ public final class Shell {
      * Prints out the games board on the console in a square. 'W' indicates a
      * white pawn while 'B' indicates a black pawn.
      *
-     * @param gameBoard The board which is printed out.
+     * @param tokenParts String array of all arguments.
+     * @param gameBoard  The board which is printed out.
      */
-    private static void printBoard(Board gameBoard) {
+    private static void printBoard(String[] tokenParts, Board gameBoard) {
         assert gameBoard != null;
 
-        System.out.println(gameBoard);
+        if (hasCorrectAmountArguments(tokenParts, 1)) {
+            System.out.println(gameBoard);
+        }
     }
 
     /**
