@@ -14,22 +14,17 @@ public class Node<T> {
     /**
      * The content of the node.
      */
-    private T content;
-
-    /**
-     * The parent node.
-     */
-    private Node<T> parent;
+    private final T content;
 
     /**
      * The children nodes.
      */
-    private List<Node<T>> children = new ArrayList<>();
+    private final List<Node<T>> children = new ArrayList<>();
 
     /**
      * The nodes height in the tree.
      */
-    private int height;
+    private final int height;
 
     /**
      * The value which the node holds. It is determined by the nodes content
@@ -42,13 +37,10 @@ public class Node<T> {
      * A constructor for a node object.
      *
      * @param content The content of the node.
-     * @param parent The nodes parent in a tree. {@code null} if the node is
-     *               a root.
      * @param height The height of the node in a tree.
      */
-    public Node(T content, Node<T> parent, int height) {
+    public Node(T content, int height) {
         this.content = content;
-        this.parent = parent;
         this.height = height;
     }
 
@@ -106,7 +98,6 @@ public class Node<T> {
         return height;
     }
 
-    //TODO combine zu getChildMinMax (boolean max, boolean min) unschön :/
     /**
      * The getter for the child of this node with the highest value.
      *
@@ -115,7 +106,7 @@ public class Node<T> {
     public Node<T> getMaxChild() {
 
         // Temporarily chosen Node representing the best move.
-        Node<T> temp = new Node<>(null, null, 0);
+        Node<T> temp = null;
 
         // Value of the currently best node.
         double tempValue = Integer.MIN_VALUE;
@@ -127,14 +118,13 @@ public class Node<T> {
         }
 
         // Determine if the temporary node is till the original node.
-        if (temp.getContent() == null) {
+        if (temp == null) {
             throw new IllegalCallerException("This tree has no children!");
         } else {
             return temp;
         }
     }
 
-    //TODO: combine with getBestMove
     /**
      * The getter for the child of this node with the lowest value.
      *
@@ -143,7 +133,7 @@ public class Node<T> {
     public Node<T> getMinChild() {
 
         // Temporarily chosen node representing the best move.
-        Node<T> temp = new Node<>(null, null, 0);
+        Node<T> temp = null;
 
         // Value of the currently worst node.
         double tempValue = Integer.MAX_VALUE;
@@ -155,7 +145,7 @@ public class Node<T> {
         }
 
         // Determine if the temporary node is till the original node.
-        if (temp.getContent() == null) {
+        if (temp == null) {
             throw new IllegalCallerException("This tree has no children!");
         } else {
             return temp;

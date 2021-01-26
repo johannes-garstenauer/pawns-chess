@@ -9,24 +9,20 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * An implementation of the {@code Board} interface.
+ * An implementation of the {@code Board} interface. This class provides a
+ * variety of private methods that support the public methods declared in the
+ * interface.
  */
 public class ChessBoard implements Board, Cloneable {
 
-    /**
-     * The player who can move next.
-     */
-    public Player nextPlayer;
+    // The player who can move next.
+    private Player nextPlayer;
 
-    /**
-     * The pawns of the player with the white color.
-     */
-    public List<Pawn> whitePawns = new ArrayList<>();
+    // The pawns of the player with the white color.
+    private List<Pawn> whitePawns = new ArrayList<>();
 
-    /**
-     * The pawns of the player with the black color.
-     */
-    public List<Pawn> blackPawns = new ArrayList<>();
+    // The pawns of the player with the black color.
+    private List<Pawn> blackPawns = new ArrayList<>();
 
     /**
      * This is the constructor of an implementation of a {@code Board} for
@@ -44,8 +40,7 @@ public class ChessBoard implements Board, Cloneable {
      * @throws IllegalArgumentException Throws an exception if the level or
      *                                  the humanColor are not valid.
      */
-    public ChessBoard(int level, Color humanColor)
-            throws IllegalArgumentException {
+    public ChessBoard(int level, Color humanColor) {
 
         if (humanColor == null || humanColor == Color.NONE) {
             throw new IllegalArgumentException("The human player has to have "
@@ -174,8 +169,17 @@ public class ChessBoard implements Board, Cloneable {
     private boolean isLegalMove(Pawn pawn, int colTo,
                                 int rowTo) {
 
-        assert pawn != null;
         if (!(colTo >= 1 && colTo <= SIZE && rowTo >= 1 && rowTo <= SIZE)) {
+            return false;
+        } else if (pawn == null) {
+
+            // There is no pawn to be moved.
+            return false;
+        } else if (!(this.getPawnsList(Color.WHITE)
+                .contains(pawn) || this.getPawnsList(Color.BLACK)
+                .contains(pawn))) {
+
+            // The pawn must belong to one of the players.
             return false;
         } else {
 
@@ -258,13 +262,12 @@ public class ChessBoard implements Board, Cloneable {
                 || rowTo > SIZE) {
             throw new IllegalArgumentException("The move must occur within "
                     + "the board!");
-        } else if (getPawn(colFrom, rowFrom) == null) {
-            throw new IllegalArgumentException("There is no pawn to be moved "
-                    + "at the given position.");
         } else if (!this.getPawnsList(getHumanColor())
                 .contains(getPawn(colFrom, rowFrom))) {
-            throw new IllegalArgumentException("The pawn at the given "
-                    + "position is hostile and can therefore not be moved!");
+
+            // The pawn at the given position is hostile and can therefore not
+            // be moved!
+            return null;
         } else {
 
             // Board on which the move is executed.
@@ -487,7 +490,6 @@ public class ChessBoard implements Board, Cloneable {
                                    List<Pawn> machinePawns, int depth) {
         assert humanPawns != null && machinePawns != null;
 
-        double v;
         if (isGameOver() && depth != 0) {
 
             // Player which might have won by playing the last move.
@@ -681,6 +683,58 @@ public class ChessBoard implements Board, Cloneable {
      * {@inheritDoc}
      */
     @Override
+    public Player getWinner() {
+        if (!isGameOver()) {
+            throw new IllegalCallerException("This game has not ended.");
+        }
+
+        // List of pawns belonging to machine player.
+        List<Pawn> machinePawns = getPawnsList(
+                Color.getOppositeColor(getHumanColor()));
+
+        // List of pawns belonging to human player.
+        List<Pawn> humanPawns = getPawnsList(getHumanColor());
+
+        // Determine whether a player has reached the enemies base row.
+        if (amountOfPawnsInRow(1, machinePawns) > 0) {
+            return Player.MACHINE;
+        } else if (amountOfPawnsInRow(SIZE, humanPawns) > 0) {
+            return Player.HUMAN;
+        } else if (humanPawns.isEmpty() && machinePawns.isEmpty()) {
+
+            // Return null to indicate a draw if both players are somehow out
+            // of pawns.
+            return null;
+        } else if (humanPawns.isEmpty()) {
+
+            // If the player has no pawns left the machine has won.
+            return Player.MACHINE;
+        } else if (machinePawns.isEmpty()) {
+
+            // If the machine has no pawns left the player has won.
+            return Player.HUMAN;
+        } else { // This is the case for a stalemate.
+            if (humanPawns.size() > machinePawns.size()) {
+
+                // In case of a stalemate, if the human has more pawns he wins.
+                return Player.HUMAN;
+            } else if (machinePawns.size() > humanPawns.size()) {
+
+                // In case of a stalemate, if the machine has more pawns he
+                // wins.
+                return Player.MACHINE;
+            } else {
+
+                // Return null to indicate a draw.
+                return null;
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Board machineMove() throws IllegalMoveException {
 
         if (nextPlayer != Player.MACHINE) {
@@ -698,7 +752,7 @@ public class ChessBoard implements Board, Cloneable {
 
             // Create a look-ahead tree with which the best next move for the
             // machine will be determined.
-            Node<ChessBoard> root = new Node<>(newBoard, null, 0);
+            Node<ChessBoard> root = new Node<>(newBoard, 0);
             newBoard.constructTree(root, Player.MACHINE.getLevel());
             newBoard.assignValues(root);
 
@@ -725,7 +779,7 @@ public class ChessBoard implements Board, Cloneable {
             // Create child nodes for node.
             for (ChessBoard possibleMove : possibleMoves(nextPlayer)) {
                 Node<ChessBoard> child =
-                        new Node<>(possibleMove, node, level - 1);
+                        new Node<>(possibleMove, level - 1);
 
                 node.addChild(child);
                 possibleMove.constructTree(child, level - 1);
@@ -896,55 +950,12 @@ public class ChessBoard implements Board, Cloneable {
      * {@inheritDoc}
      */
     @Override
-    public void setLevel(int level) throws IllegalArgumentException {
-        if (level > 0) {
+    public void setLevel(int level) {
+        if (level < 0) {
+            throw new IllegalArgumentException("The level must not be "
+                    + "negative.");
+        } else {
             Player.MACHINE.setLevel(level);
-        } else {
-            throw new IllegalArgumentException("The level must be at least 1.");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Player getWinner() throws IllegalCallerException {
-
-        if (!isGameOver()) {
-            throw new IllegalCallerException("This game is not over - there "
-                    + "cannot be a winner or draw.");
-        } else {
-            //List of pawns belonging to machine player.
-            List<Pawn> machinePawns = getPawnsList(
-                    Color.getOppositeColor(getHumanColor()));
-
-            //TODO STALEMATE -> player with more pawns wins.
-
-            // List of pawns belonging to human player.
-            List<Pawn> humanPawns = getPawnsList(getHumanColor());
-
-            // Determine whether a player has reached the enemies base row.
-            if (amountOfPawnsInRow(1, machinePawns) > 0) {
-                return Player.MACHINE;
-            } else if (amountOfPawnsInRow(SIZE, humanPawns) > 0) {
-                return Player.HUMAN;
-            } else {
-
-                //Determine whether one or both player has no pawns left.
-                if (humanPawns.isEmpty() && machinePawns.isEmpty()) {
-
-                    // Return null to indicate a draw.
-                    return null;
-                } else if (humanPawns.isEmpty()) {
-                    return Player.MACHINE;
-                } else if (machinePawns.isEmpty()) {
-                    return Player.HUMAN;
-                } else {
-
-                    // Return null to indicate a draw.
-                    return null;
-                }
-            }
         }
     }
 
@@ -981,7 +992,7 @@ public class ChessBoard implements Board, Cloneable {
      * {@inheritDoc}
      */
     @Override
-    public Color getSlot(int col, int row) throws IllegalArgumentException {
+    public Color getSlot(int col, int row) {
         if (col < 1 || col > SIZE || row < 1 || row > SIZE) {
             throw new IllegalArgumentException("The given coordinates must be "
                     + "within the board.");

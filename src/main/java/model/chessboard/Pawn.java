@@ -17,12 +17,11 @@ public class Pawn implements Cloneable {
      */
     private int row;
 
-    //TODO entfernen, stattdessen prüfen ob row == startingrow
     /**
      * An indication as to whether this pawn has already been moved. Useful
      * in determining whether a double move can be performed.
      */
-    public boolean hasMoved = false;
+    private boolean hasMoved = false;
 
     /**
      * This is a constructor for the pawn.
@@ -80,7 +79,6 @@ public class Pawn implements Cloneable {
         } else {
             final Pawn other = (Pawn) o;
 
-            //TODO vergleiche mit gettern ode rmit den variablen???
             if (this.getColumn() != other.getColumn()) {
                 return false;
             } else if (this.getRow() != other.getRow()) {

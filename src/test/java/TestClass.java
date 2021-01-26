@@ -294,6 +294,7 @@ public class TestClass {
     public void shortTest() {
         ChessBoard newBoard = new ChessBoard(3, Color.WHITE);
 
+        /*
         newBoard.whitePawns.clear();
         newBoard.blackPawns.clear();
 
@@ -324,8 +325,10 @@ public class TestClass {
            // newBoard.getPawn(i, 1).hasMoved = false;
         }
 
+         */
+
        // newBoard.getPawn(1, 8).hasMoved = false;
-        newBoard.nextPlayer = Player.MACHINE;
+       // newBoard.nextPlayer = Player.MACHINE;
 
         ChessBoard machineMove = (ChessBoard) newBoard.machineMove();
 
@@ -353,7 +356,7 @@ public class TestClass {
 
 //TODO Besipiel Level 3
         ChessBoard newBoard = new ChessBoard(3, Color.WHITE);
-
+/*
         newBoard.whitePawns.clear();
         newBoard.blackPawns.clear();
 
@@ -384,8 +387,10 @@ public class TestClass {
            // newBoard.getPawn(i, 1).hasMoved = false;
         }
 
+ */
+
        //newBoard.getPawn(1, 8).hasMoved = false;
-        newBoard.nextPlayer = Player.MACHINE;
+        //newBoard.nextPlayer = Player.MACHINE;
 
         System.out.println(newBoard);
         Board machineMove = newBoard.machineMove();

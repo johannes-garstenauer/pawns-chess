@@ -16,7 +16,6 @@ public class IllegalMoveException extends RuntimeException {
         super(message);
     }
 
-    //TODO entfernen weil unbenutzt?
     /**
      * An alternative constructor for this exception without a corresponding
      * error message.

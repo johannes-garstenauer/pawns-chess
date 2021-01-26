@@ -12,13 +12,11 @@ import java.io.InputStreamReader;
 import java.util.regex.Pattern;
 
 /**
- * Shell to interact with a turing machine.
+ * Shell with commands in order to interact with a chessboard for pawns chess.
  */
 public final class Shell {
     private static final String PROMPT = "pc> ";
     private static final Pattern WHITESPACE_SPLIT = Pattern.compile("\\s+");
-
-    //TODO should this not be global?
 
     // This is the difficulty level of the machine opponent.
     private static int difficultyLevel = 3;
@@ -58,10 +56,10 @@ public final class Shell {
             } else {
                 switch (tokenParts[0].toLowerCase().charAt(0)) {
                 case 'n':
-                    gameBoard = constructNewBoard();
+                    gameBoard = constructNewBoard(tokenParts, gameBoard);
                     break;
                 case 'h':
-                    printHelp();
+                    printHelp(tokenParts);
                     break;
                 case 'l':
                     if (!(gameBoard == null)) {
@@ -81,7 +79,7 @@ public final class Shell {
                     break;
                 case 's':
                     if (!(gameBoard == null)) {
-                        gameBoard = executeSwitch(tokenParts);
+                        gameBoard = executeSwitch(tokenParts, gameBoard);
                     } else {
                         printError("There is no board to switch colors on. "
                                 + "Try command: 'NEW'.");
@@ -99,8 +97,8 @@ public final class Shell {
                     }
                     break;
                 default:
-                    printError("Command unknown.");
-                    System.out.println("Type \"help\" for further hints.");
+                    printError("Command unknown. Type \"help\" for further "
+                            + "hints.");
                     break;
                 }
             }
@@ -111,12 +109,13 @@ public final class Shell {
      * Starts a new game but switches the humans and machines color.
      *
      * @param tokenParts String array of all arguments.
+     * @param gameBoard  The board on which the action is performed.
      */
-    private static Board executeSwitch(String[] tokenParts) {
+    private static Board executeSwitch(String[] tokenParts, Board gameBoard) {
 
         if (hasCorrectAmountArguments(tokenParts, 1)) {
             humanColor = Color.getOppositeColor(humanColor);
-            return constructNewBoard();
+            return constructNewBoard(tokenParts, gameBoard);
         } else {
 
             // Return a null-board if the amount of arguments was not correct.
@@ -140,6 +139,8 @@ public final class Shell {
 
             // The board on which the move will be attempted.
             Board moveBoard = null;
+
+            // Attempt the human move.
             try {
                 moveBoard = gameBoard.move(Integer.parseInt(tokenParts[1]),
                         Integer.parseInt(tokenParts[2]),
@@ -151,29 +152,20 @@ public final class Shell {
                         + " This would move the pawn at column one and row "
                         + "three to  column one and row four.");
             } catch (IllegalArgumentException illegalArgumentException) {
-                //TODO das notwendig für prakto -> edge case probleme?
-                // printError(illegalArgumentException.getMessage());
-                //TODO must be caught!
-                //TODO reihenfolge hier ändern?
+                System.out.println(illegalArgumentException.getMessage());
             } catch (IllegalMoveException illegalMoveException) {
                 if (gameBoard.isGameOver()) {
                     announceWinner(gameBoard);
+                    return gameBoard;
+                } else {
+                    System.out.println(illegalMoveException.getMessage());
                 }
-                //TODO das notwendig für prakto -> edge case probleme?
-                //TODO must be caught!
-                /*
-                else {
-                    //TODO Prompt?
-                   // System.out.println(illegalMoveException.getMessage());
-                }
-
-                 */
             }
 
             if (moveBoard == null) {
 
-                // If the move was invalid an error message will be displayed
-                // and the machine will not be allowed to move.
+                // If the move was invalid an error message will be
+                // displayed and the machine will not be allowed to move.
                 printError("Invalid move from ("
                         + Integer.parseInt(tokenParts[1]) + ", "
                         + Integer.parseInt(tokenParts[2]) + ") to ("
@@ -184,20 +176,19 @@ public final class Shell {
                 gameBoard = moveBoard;
             }
 
+            // Attempt the machines response move, if the human was succesful
             try {
                 gameBoard = gameBoard.machineMove();
+                if (gameBoard.isGameOver()) {
+                    announceWinner(gameBoard);
+                }
             } catch (IllegalMoveException illegalMoveException) {
                 if (gameBoard.isGameOver()) {
                     announceWinner(gameBoard);
                 } else {
-                    //TODO Prompt?
                     System.out.println(illegalMoveException.getMessage());
                 }
             }
-        }
-
-        if (gameBoard.isGameOver()) {
-            announceWinner(gameBoard);
         }
         return gameBoard;
     }
@@ -210,8 +201,7 @@ public final class Shell {
      */
     private static void announceWinner(Board gameBoard) {
         assert gameBoard != null;
-        //TODO: prompt?
-        printBoard(gameBoard);
+
         if (gameBoard.getWinner() == Player.HUMAN) {
             System.out.println("Congratulations! You won.");
         } else if (gameBoard.getWinner() == Player.MACHINE) {
@@ -258,15 +248,10 @@ public final class Shell {
                         + "four!");
             } else {
                 difficultyLevel = newDifficultyLevel;
-                try {
-                    gameBoard.setLevel(difficultyLevel);
-                } catch (IllegalArgumentException exception) {
-                    printError("Please enter a number larger than zero.");
-                }
+                gameBoard.setLevel(difficultyLevel);
             }
         }
     }
-
 
     /**
      * Creates a new chessboard to play on with the pawns in their initial
@@ -275,10 +260,23 @@ public final class Shell {
      * and the difficulty level is 3. If the machine is the opening player it
      * will perform its first move.
      *
+     * @param tokenParts String array of all arguments.
+     * @param board      The board on which the action is performed.
      * @return The board on which the game will take place.
      */
-    private static Board constructNewBoard() {
-        try {
+    private static Board constructNewBoard(String[] tokenParts, Board board) {
+
+        Board gameBoard = board;
+        if (hasCorrectAmountArguments(tokenParts, 1)) {
+            try {
+                gameBoard = new ChessBoard(difficultyLevel, humanColor);
+            } catch (IllegalArgumentException exception) {
+
+                // This exception cannot be caused by a faulty user interaction
+                // therefore the program is terminated.
+                throw new IllegalArgumentException(exception.getMessage());
+            }
+
 
             System.out.print("New game started. ");
 
@@ -290,16 +288,19 @@ public final class Shell {
                 System.out.println("You are black.");
             }
 
-            Board gameBoard = new ChessBoard(difficultyLevel, humanColor);
-
-            if (humanColor == Color.BLACK) {
+            // If the machine opens the board, it should make the first move.
+            if (gameBoard.getOpeningPlayer() == Player.MACHINE) {
                 try {
                     gameBoard = gameBoard.machineMove();
                 } catch (IllegalMoveException illegalMoveException) {
                     if (gameBoard.isGameOver()) {
+
+                        // It is very unlikely that this happens but
+                        // nonetheless possible when working with a very
+                        // small board size.
                         announceWinner(gameBoard);
+                        return gameBoard;
                     } else {
-                        //TODO Prompt?
                         System.out.println(illegalMoveException.getMessage());
                     }
                 }
@@ -307,14 +308,8 @@ public final class Shell {
                     announceWinner(gameBoard);
                 }
             }
-            return gameBoard;
-
-        } catch (IllegalArgumentException exception) {
-
-            // This exception cannot be caused by a faulty user interaction
-            // therefore the program is terminated.
-            throw new IllegalArgumentException(exception.getMessage());
         }
+        return gameBoard;
     }
 
     /**
@@ -341,28 +336,39 @@ public final class Shell {
      * @param message Description of the error message.
      */
     private static void printError(String message) {
-        System.err.println("Error! " + message);
-        //TODO reihenfolge bruh.
-        System.out.println(PROMPT);
+        System.out.println("Error! " + message);
     }
-
-    //TODO text noch von dtm
 
     /**
      * Prints a help message containing information about available commands.
+     *
+     * @param tokenParts String array of all arguments.
      */
-    private static void printHelp() {
-        System.out.println("Using this program you\n"
-                + "Following commands are available:\n");
-        System.out.println("INPUT <path>: Initiates the turing machine from "
-                + "given file.");
-        System.out.println("RUN <word> : Prints content of the output "
-                + "tape after computing the input word.");
-        System.out.println("CHECK <word> : Returns whether the given "
-                + "word is accepted by the machine.");
-        System.out.println("PRINT: Prints out the commands contained in the "
-                + "turing machine.");
-        System.out.println("HELP : Prints out his help message.");
-        System.out.println("QUIT : Terminates this program.\n");
+    private static void printHelp(String[] tokenParts) {
+        if (hasCorrectAmountArguments(tokenParts, 1)) {
+            System.out.println("Using this program you can play a game of "
+                    + "pawns chess.\n"
+                    + "Following commands are available:\n");
+            System.out.println("NEW : Creates a new game where you have the "
+                    + "same color as before and the\n      machine has the "
+                    + "same difficulty as in the last game.\n      The initial "
+                    + "values are that the human player is white and the "
+                    + "\n      difficulty level is 3.");
+            System.out.println("LEVEL <number> : Sets the difficulty level to "
+                    + "the given number. \n      Please use values between "
+                    + "1 and 4.");
+            System.out.println("MOVE <colFrom> <rowFrom> <colTo> <rowTo> : \n"
+                    + "     This moves one of your pawns from the given\n     "
+                    + "column and row to the given destination column and row."
+                    + "\n     The machine will move automatically afterwards."
+                    + "\n     If you or the machine have to suspend you will "
+                    + "be notified.");
+            System.out.println("SWITCH : Starts a new game and switches your "
+                    + "and the machines colors.");
+            System.out.println("PRINT: Prints out the game board on the "
+                    + "console.");
+            System.out.println("HELP : Prints out his help message.");
+            System.out.println("QUIT : Terminates this program.");
+        }
     }
 }
