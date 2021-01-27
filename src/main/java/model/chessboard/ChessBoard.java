@@ -73,7 +73,7 @@ public class ChessBoard implements Board, Cloneable {
      * Initiates the pawns in their starting positions.
      * The pawns of the human player will be placed on the lowest row of the
      * board. The machines pawns on the highest. The pawns are assigned to
-     * their respective lists of pawns ( {@code whitePawns} or {@code
+     * their respective lists of pawns ({@code whitePawns} or {@code
      * blackPawns}) in a left to right order from the pawns perspective.
      *
      * @throws IllegalStateException The boards pawn lists have to be empty.

@@ -75,7 +75,7 @@ public enum Player {
      *
      * @return Returns the machines level.
      * @throws IllegalCallerException Will be thrown if it is attempted to
-     * get the level of the human.
+     *                                get the level of the human.
      */
     public int getLevel() {
         if (this == HUMAN) {

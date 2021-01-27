@@ -25,7 +25,7 @@ public final class Shell {
     private static Color humanColor = Color.WHITE;
 
     /**
-     * Private constructor for the Shell class.
+     * Private constructor for the Shell class. Do not attempt to use this.
      */
     private Shell() {
     }
@@ -52,7 +52,8 @@ public final class Shell {
 
             String[] tokenParts = WHITESPACE_SPLIT.split(input);
 
-            if (tokenParts.length == 0) {
+            if (tokenParts.length == 0
+                    || (tokenParts[0].isEmpty() && tokenParts.length == 1)) {
                 printError("There is no command");
             } else {
                 if (tokenParts[0].isEmpty()) {
@@ -60,12 +61,12 @@ public final class Shell {
                     // Remove initial whitespaces from the input tokens because
                     // they are most likely accidental.
                     String[] newTokenParts = new String[tokenParts.length - 1];
-                    for (int i = 0; i < newTokenParts.length; i++) {
-                        newTokenParts[i] = tokenParts[i + 1];
+                    if (newTokenParts.length >= 0) {
+                        System.arraycopy(tokenParts, 1, newTokenParts,
+                                0, newTokenParts.length);
                     }
                     tokenParts = newTokenParts;
                 }
-
                 switch (tokenParts[0].toLowerCase().charAt(0)) {
                 case 'n':
                     gameBoard = constructNewBoard(tokenParts, gameBoard);
@@ -304,8 +305,8 @@ public final class Shell {
 
             System.out.print("New game started. ");
 
-            // The toString() method cannot be used as it would create a
-            // coherent result for this use.
+            // The toString() method cannot be used as it would create an
+            // incoherent result for this use.
             if (humanColor == Color.WHITE) {
                 System.out.println("You are white.");
             } else {

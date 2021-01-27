@@ -45,6 +45,7 @@ public enum Color {
     /**
      * Returns a single upper case letter as a string representation of the
      * color.
+     *
      * @return Returns single upper case representation of color.
      */
     public String toString() {
