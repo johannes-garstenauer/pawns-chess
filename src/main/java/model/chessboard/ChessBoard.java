@@ -226,13 +226,11 @@ public class ChessBoard implements Board, Cloneable {
                                     && getPawn(pawn.getColumn(),
                                     pawn.getRow() - 1) == null;
                         }
-
                     } else {
 
                         // A legal move forward can occur.
                         return true;
                     }
-
                 } else {
 
                     // Determine whether a hostile pawn can be attacked.
