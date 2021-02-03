@@ -9,8 +9,7 @@ import model.player.Player;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -32,7 +31,129 @@ public class GUI extends JFrame {
     private final JPanel chessBoardPanel = new JPanel();
     private final JPanel controlPanel = new JPanel();
 
-    private Stack<Board> undoStack = new Stack<>();
+    private final Stack<Board> undoStack = new Stack<>();
+
+    private JLabel humanPawnsNumber
+            = new JLabel(String.valueOf(amountOfHumanPawns));
+    private JLabel machinePawnsNumber
+            = new JLabel(String.valueOf(amountOfMachinePawns));
+
+
+    private MachineMoveThread machineMoveThread = new MachineMoveThread();
+    private class MachineMoveThread extends Thread {
+
+        @Override
+        public void run() {
+
+            // Disable the humans possibility to move while the machine has not yet
+            // moved.
+            //TODO extract method.
+            for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+                chessSlotPanel.getSlotButton().setEnabled(false);
+            }
+
+            try {
+                gameBoard = gameBoard.machineMove();
+            } catch (IllegalMoveException illegalMoveException) {
+                if (gameBoard.isGameOver()) {
+                    announceWinner();
+                } else {
+                    //TODO aussetzen
+                    //-> mensch kann wieder ziehen
+                    // falls mensch aussetzen muss
+                }
+            } finally {
+                if (gameBoard.isGameOver()) {
+                    announceWinner();
+                } else {
+                    updateAmountOfPawns();
+                    updateGameBoard();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            chessBoardPanel.repaint();
+                        }
+                    });
+
+                    // Move again if the human cannot move.
+                    if (gameBoard.getNextPlayer() != Player.HUMAN) {
+                        //System.err.println("Cannot Move!");
+                        this.run();
+                        //TODO: executeMachineMoved didnt work
+                        //TODO rekursion klappt hier nicht :/
+                    }
+
+                    // Enable the humans possibility to move again.
+                    for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+                        chessSlotPanel.getSlotButton().setEnabled(true);
+                    }
+                }
+            }
+        }
+
+        @SuppressWarnings("deprecation")
+        private void stopThread() {
+            if (machineMoveThread != null) {
+                machineMoveThread.stop();
+            }
+            machineMoveThread = null;
+        }
+
+    }
+
+    /*
+    Thread machineMoveThread = new Thread() {
+        @Override
+        public void run() {
+
+            // Disable the humans possibility to move while the machine has not yet
+            // moved.
+            //TODO extract method.
+            for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+                chessSlotPanel.getSlotButton().setEnabled(false);
+            }
+
+            try {
+                gameBoard = gameBoard.machineMove();
+            } catch (IllegalMoveException illegalMoveException) {
+                if (gameBoard.isGameOver()) {
+                    announceWinner();
+                } else {
+                    //TODO aussetzen
+                    //-> mensch kann wieder ziehen
+                    // falls mensch aussetzen muss
+                }
+            } finally {
+                if (gameBoard.isGameOver()) {
+                    announceWinner();
+                } else {
+                    updateAmountOfPawns();
+                    updateGameBoard();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            chessBoardPanel.repaint();
+                        }
+                    });
+
+                    // Move again if the human cannot move.
+                    if (gameBoard.getNextPlayer() != Player.HUMAN) {
+                        //System.err.println("Cannot Move!");
+                        this.run();
+                        //TODO: executeMachineMoved didnt work
+                        //TODO rekursion klappt hier nicht :/
+                    }
+
+                    // Enable the humans possibility to move again.
+                    for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+                        chessSlotPanel.getSlotButton().setEnabled(true);
+                    }
+                }
+            }
+        }
+    };
+     */
+
 
     //TODO ist das ein Bruch des Klassengeheimnis?
     private final List<ChessSlotPanel> chessSlotPanels = new ArrayList<>();
@@ -47,18 +168,36 @@ public class GUI extends JFrame {
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setSize(700, 700);
+
+        //TODO das is eig nicht so nice
+        this.setResizable(false);
+
+        //TODO das bringt was
+        //this.setMinimumSize(new Dimension(700, 700));
+
+        //TODO das bring nix :(
+        //this.setMaximumSize(new Dimension(700, 700));
+
         this.setLayout(new BorderLayout());
 
         initChessBoardPanel();
         initControlPanel();
         this.setVisible(true);
+
+        //TODO besser? -> thread als runnable?
+        // Stops the extra thread when the window is closed.
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                machineMoveThread.stopThread();
+            }
+        });
     }
 
 
     private void initChessBoardPanel() {
         chessBoardPanelWrapper.setLayout(new BorderLayout());
-
-        ChessSlotPanel temp = null;
         chessBoardPanel.setLayout(new GridLayout(Board.SIZE, Board.SIZE));
         for (int row = 1; row <= Board.SIZE; row++) {
             for (int col = 1; col <= Board.SIZE; col++) {
@@ -70,7 +209,6 @@ public class GUI extends JFrame {
                 chessSlotPanels.add(chessSlot);
                 //slots[row - 1][col - 1] = chessSlot;
                 chessBoardPanel.add(chessSlot);
-                temp = chessSlot;
             }
         }
         chessBoardPanelWrapper.add(chessBoardPanel, BorderLayout.CENTER);
@@ -85,14 +223,14 @@ public class GUI extends JFrame {
         //TODO
         // Add spacing to horizontal indices.
         horizontalIndicesNorth.setBorder(new EmptyBorder(0,
-                this.getWidth() / 15, 0,
+                this.getWidth() / 10, 0,
                 this.getWidth() / 15));
-        horizontalIndicesSouth.setBorder(new EmptyBorder(0, 30,
-                0 , 30));
+        horizontalIndicesSouth.setBorder(new EmptyBorder(0, 100,
+                0, 0));
 
         System.out.println(verticalIndicesEast.getWidth());
 
-        for (int i = Board.SIZE; i >= 1 ; i--) {
+        for (int i = Board.SIZE; i >= 1; i--) {
             verticalIndicesWest.add(new JLabel(String.valueOf(i)));
             verticalIndicesEast.add(new JLabel(String.valueOf(i)));
             horizontalIndicesSouth.add(new JLabel(String.valueOf(Board.SIZE + 1 - i)));
@@ -103,14 +241,56 @@ public class GUI extends JFrame {
         chessBoardPanelWrapper.add(horizontalIndicesNorth, BorderLayout.NORTH);
         chessBoardPanelWrapper.add(horizontalIndicesSouth, BorderLayout.SOUTH);
 
+        /*
+        chessBoardPanelWrapper.addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                System.out.println("fak");
+                int min = Math.min(chessBoardPanel.getTopLevelAncestor().getWidth(),
+                        chessBoardPanel.getTopLevelAncestor().getHeight());
+                chessBoardPanel.setBounds(new Rectangle(min, min));
+            }
+
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+
+            }
+        });
+         */
+
     }
 
     private void initControlPanel() {
-        controlPanel.setLayout(new FlowLayout());
+        JPanel controlPanelWrapper = new JPanel(new BorderLayout());
 
-        JLabel humanPawnsNumber =
-                new JLabel(String.valueOf(amountOfHumanPawns));
-        controlPanel.add(humanPawnsNumber);
+        humanPawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
+        humanPawnsNumber.setBorder(new EmptyBorder(0, 10, 0, 10));
+
+        JPanel machinePawnsNumberPanel = new JPanel();
+        machinePawnsNumberPanel.setBackground(java.awt.Color.BLACK);
+        machinePawnsNumber.setBackground(java.awt.Color.WHITE);
+        machinePawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
+        machinePawnsNumberPanel.add(machinePawnsNumber);
+        machinePawnsNumberPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
+
+        controlPanelWrapper.add(controlPanel, BorderLayout.CENTER);
+        controlPanelWrapper.add(humanPawnsNumber,
+                BorderLayout.WEST);
+        controlPanelWrapper.add(machinePawnsNumberPanel,
+                BorderLayout.EAST);
+
+        controlPanel.setLayout(new FlowLayout());
 
         controlPanel.add(new JLabel("Levels:"));
         String[] levels = {"1", "2", "3", "4"};
@@ -137,8 +317,11 @@ public class GUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!undoStack.isEmpty()) {
+                    machineMoveThread.stopThread();
+                    machineMoveThread = new MachineMoveThread();
                     gameBoard = undoStack.pop();
                     updateGameBoard();
+                    updateAmountOfPawns();
                     chessBoardPanel.repaint();
                 } else {
                     Toolkit.getDefaultToolkit().beep();
@@ -169,18 +352,37 @@ public class GUI extends JFrame {
         });
         controlPanel.add(switchButton);
 
-        JLabel machinePawnsNumber =
-                new JLabel(String.valueOf(amountOfMachinePawns));
-        controlPanel.add(machinePawnsNumber);
+        JButton quitButton = new JButton("Quit");
+        quitButton.setMnemonic('Q');
+        quitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (java.awt.Frame frame : java.awt.Frame.getFrames()) {
+                    machineMoveThread.stopThread();
 
-        this.add(controlPanel, BorderLayout.SOUTH);
+                    //TODO doppelt gemoppelt weil
+                    frame.dispose();
+                }
+            }
+        });
+        controlPanel.add(quitButton);
+
+        this.add(controlPanelWrapper, BorderLayout.SOUTH);
     }
 
     private void updateAmountOfPawns() {
         amountOfHumanPawns = gameBoard.getNumberOfTiles(Player.HUMAN);
         amountOfMachinePawns = gameBoard.getNumberOfTiles(Player.MACHINE);
+        humanPawnsNumber.setText(String.valueOf(amountOfHumanPawns));
+        machinePawnsNumber.setText(String.valueOf(amountOfMachinePawns));
+        humanPawnsNumber.repaint();
+        machinePawnsNumber.repaint();
     }
+
     private void constructNewBoard() {
+        machineMoveThread.stopThread();
+        machineMoveThread = new MachineMoveThread();
+
         undoStack.clear();
         amountOfMachinePawns = Board.SIZE;
         amountOfHumanPawns = Board.SIZE;
@@ -188,7 +390,8 @@ public class GUI extends JFrame {
         gameBoard = new ChessBoard(difficultyLevel, humanColor);
 
         if (gameBoard.getOpeningPlayer() == Player.MACHINE) {
-            executeMachineMove();
+            //executeMachineMove();
+            machineMoveThread.run();
         } else {
             updateGameBoard();
             chessBoardPanel.repaint();
@@ -196,8 +399,12 @@ public class GUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        //invokeLater:
-        new GUI();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new GUI();
+            }
+        });
     }
 
     private void addMoveParam(ChessSlotPanel moveParam) {
@@ -236,17 +443,17 @@ public class GUI extends JFrame {
                     if (newBoard == null) {
                         Toolkit.getDefaultToolkit().beep();
                     } else {
-                        updateAmountOfPawns();
                         undoStack.push(gameBoard.clone());
                         gameBoard = newBoard;
                         if (gameBoard.isGameOver()) {
-                            updateGameBoard();
-                            chessBoardPanel.repaint();
+                            ;
                             announceWinner();
                         } else {
+                            updateAmountOfPawns();
                             updateGameBoard();
                             chessBoardPanel.repaint();
-                            executeMachineMove();
+                            //executeMachineMove();
+                            machineMoveThread.run();
                         }
                     }
                     moveParams.clear();
@@ -259,6 +466,15 @@ public class GUI extends JFrame {
     }
 
     private void executeMachineMove() {
+
+/*
+        // Disable the humans possibility to move while the machine has not yet
+        // moved.
+        //TODO extract method.
+        for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+            chessSlotPanel.getSlotButton().setEnabled(false);
+        }
+
         try {
             gameBoard = gameBoard.machineMove();
         } catch (IllegalMoveException illegalMoveException) {
@@ -272,18 +488,35 @@ public class GUI extends JFrame {
         } finally {
             if (gameBoard.isGameOver()) {
                 announceWinner();
-            }
-            updateAmountOfPawns();
-            updateGameBoard();
-            chessBoardPanel.repaint();
-        }
+            } else {
+                updateAmountOfPawns();
+                updateGameBoard();
+                chessBoardPanel.repaint();
 
-        //TODO AUSSETZEN!!!
-        // Falls Mensch aussetzen muss
-        //executeMachineMove();
+                // Move again if the human cannot move.
+                if (gameBoard.getNextPlayer() != Player.HUMAN) {
+                    System.err.println("Cannot Move!");
+                    executeMachineMove();
+                }
+                // Enable the humans possibility to move again.
+                for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+                    chessSlotPanel.getSlotButton().setEnabled(true);
+                }
+            }
+
+ */
     }
 
+
+    //TODO AUSSETZEN!!!
+    // Falls Mensch aussetzen muss
+    //executeMachineMove();
+
     private void announceWinner() {
+        updateAmountOfPawns();
+        updateGameBoard();
+        chessBoardPanel.repaint();
+
         if (gameBoard.getWinner() == Player.HUMAN) {
             JOptionPane.showMessageDialog(null, "You won!");
         } else if (gameBoard.getWinner() == Player.MACHINE) {
@@ -291,6 +524,7 @@ public class GUI extends JFrame {
         } else {
             JOptionPane.showMessageDialog(null, "It's a draw.");
         }
+        Toolkit.getDefaultToolkit().beep();
     }
 
     private void updateGameBoard() {

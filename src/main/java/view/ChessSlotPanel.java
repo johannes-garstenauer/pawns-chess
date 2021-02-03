@@ -2,18 +2,17 @@ package view;
 
 import model.chessboard.Board;
 
-import javax.sound.midi.Soundbank;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ChessSlotPanel extends JPanel{
+public class ChessSlotPanel extends JPanel {
 
     private Board gameBoard;
     private int col;
     private int row;
-    private JToggleButton slotButton = new JToggleButton();
+    private JButton slotButton = new JButton();
 
     public ChessSlotPanel(Board gameBoard, int col, int row) {
         super();
@@ -28,7 +27,7 @@ public class ChessSlotPanel extends JPanel{
         slotButton.setContentAreaFilled(false);
         slotButton.setBorderPainted(false);
 
-        //TODO noch bisschen hässlich nach unten verschoben...
+        //TODO noch bisschen hässlich nach unten verschoben... -> minimum size?
         slotButton.setPreferredSize(this.getMaximumSize());
 
         //TODO: USE THIS TO UNSELECT AFTER MOVE
@@ -39,7 +38,7 @@ public class ChessSlotPanel extends JPanel{
             public void actionPerformed(ActionEvent e) {
                 GUI parentFrame = (GUI) getTopLevelAncestor();
 
-                JToggleButton source = (JToggleButton) e.getSource();
+                JButton source = (JButton) e.getSource();
 
                 parentFrame.attemptMove((ChessSlotPanel) source.getParent());
             }
@@ -62,13 +61,16 @@ public class ChessSlotPanel extends JPanel{
         if (gameBoard.getSlot(col, row) == model.chessboard.Color.WHITE) {
             g2.setColor(Color.WHITE);
 
-            g2.fillOval(10, 20, getWidth() - 20,
+            g2.fillOval(20, 15,getWidth() - 45,
+                    getHeight() - 45);
+            g2.fillOval(this.getWidth()/10, this.getHeight()/2, getWidth() - 20,
                     getHeight() + 40);
-        } else if (gameBoard.getSlot(col, row) == model.chessboard.Color.BLACK)
-        {
+        } else if (gameBoard.getSlot(col, row) == model.chessboard.Color.BLACK) {
             g2.setColor(Color.BLACK);
 
-            g2.fillOval(10, 20, getWidth() - 20,
+            g2.fillOval(20, 15,getWidth() - 45,
+                    getHeight() - 45);
+            g2.fillOval(this.getWidth()/10, this.getHeight()/2, getWidth() - 20,
                     getHeight() + 40);
         }
     }
@@ -90,8 +92,7 @@ public class ChessSlotPanel extends JPanel{
 
             g2.fillOval(10, 20, getWidth() - 20,
                     getHeight() + 40);
-        } else if (gameBoard.getSlot(col, row) == model.chessboard.Color.BLACK)
-        {
+        } else if (gameBoard.getSlot(col, row) == model.chessboard.Color.BLACK) {
             g2.setColor(Color.BLACK);
 
             g2.fillOval(10, 20, getWidth() - 20,
@@ -109,5 +110,9 @@ public class ChessSlotPanel extends JPanel{
 
     public void setGameBoard(Board gameBoard) {
         this.gameBoard = gameBoard;
+    }
+
+    public JButton getSlotButton() {
+        return slotButton;
     }
 }
