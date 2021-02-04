@@ -104,59 +104,6 @@ public class GUI extends JFrame {
 
     }
 
-    /*
-    Thread machineMoveThread = new Thread() {
-        @Override
-        public void run() {
-
-            // Disable the humans possibility to move while the machine has not yet
-            // moved.
-            //TODO extract method.
-            for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
-                chessSlotPanel.getSlotButton().setEnabled(false);
-            }
-
-            try {
-                gameBoard = gameBoard.machineMove();
-            } catch (IllegalMoveException illegalMoveException) {
-                if (gameBoard.isGameOver()) {
-                    announceWinner();
-                } else {
-                    //TODO aussetzen
-                    //-> mensch kann wieder ziehen
-                    // falls mensch aussetzen muss
-                }
-            } finally {
-                if (gameBoard.isGameOver()) {
-                    announceWinner();
-                } else {
-                    updateAmountOfPawns();
-                    updateGameBoard();
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            chessBoardPanel.repaint();
-                        }
-                    });
-
-                    // Move again if the human cannot move.
-                    if (gameBoard.getNextPlayer() != Player.HUMAN) {
-                        //System.err.println("Cannot Move!");
-                        this.run();
-                        //TODO: executeMachineMoved didnt work
-                        //TODO rekursion klappt hier nicht :/
-                    }
-
-                    // Enable the humans possibility to move again.
-                    for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
-                        chessSlotPanel.getSlotButton().setEnabled(true);
-                    }
-                }
-            }
-        }
-    };
-     */
-
 
     //TODO ist das ein Bruch des Klassengeheimnis?
     private final List<ChessSlotPanel> chessSlotPanels = new ArrayList<>();
@@ -193,7 +140,6 @@ public class GUI extends JFrame {
             }
         });
     }
-
 
     private void initChessBoardPanel() {
         chessBoardPanelWithIndicesWrapper.setLayout(new BorderLayout());
@@ -553,6 +499,7 @@ public class GUI extends JFrame {
     private void announceWinner() {
         updateAmountOfPawns();
         updateGameBoard();
+        resetSelectedChessSlotPanels();
         chessBoardPanel.repaint();
 
         if (gameBoard.getWinner() == Player.HUMAN) {
