@@ -190,16 +190,16 @@ public class GUI extends JFrame {
         // boards preferred size to be a square within the frame.
         int min =
                 (int) (FRAME_SIZE - (horizontalIndicesSouth.getPreferredSize().height
-                                        + horizontalIndicesNorth.getPreferredSize().height
-                                        + 2.5 * controlPanel.getPreferredSize().height));
+                        + horizontalIndicesNorth.getPreferredSize().height
+                        + 2.5 * controlPanel.getPreferredSize().height));
 
         int a =
                 FRAME_SIZE - (horizontalIndicesSouth.getPreferredSize().height + horizontalIndicesNorth.getPreferredSize().height);
         int b =
                 FRAME_SIZE - (verticalIndicesEast.getPreferredSize().height + verticalIndicesWest.getPreferredSize().height);
 
-        int m = Math.min(a,b);
-        System.out.println(chessBoardPanelFlowWrapper.getPreferredSize()+
+        int m = Math.min(a, b);
+        System.out.println(chessBoardPanelFlowWrapper.getPreferredSize() +
                 "flow");
         chessBoardPanel.setPreferredSize(new Dimension(m, m));
 
@@ -404,46 +404,41 @@ public class GUI extends JFrame {
                     addMoveParam(newestMoveParam);
                     newestMoveParam.setSelectedPawn(true);
                     newestMoveParam.repaint();
-                }
+                } else {
 
-                // Chose a slot to move the selected pawn to.
-                addMoveParam(newestMoveParam);
+                    // Chose a slot to move the selected pawn to.
+                    addMoveParam(newestMoveParam);
 
-                //attempt move
-                ChessSlotPanel source = moveParams.get(0);
-                ChessSlotPanel destination = moveParams.get(1);
+                    //attempt move
+                    ChessSlotPanel source = moveParams.get(0);
+                    ChessSlotPanel destination = moveParams.get(1);
 
-                Board newBoard = null;
-                try {
-                    System.out.println("Move: ");
-                    System.out.println("(" + source.getCol() + ", "
-                            + source.getRow() + ") -> (" + destination.getCol()
-                            + ", " + destination.getRow() + ")");
-                    System.out.println();
-                    newBoard = gameBoard.move(source.getCol(), source.getRow(),
-                            destination.getCol(), destination.getRow());
-                } catch (IllegalMoveException illegalMoveException) {
-                    moveParams.remove(1);
-                    Toolkit.getDefaultToolkit().beep();
-                } finally {
-                    if (newBoard == null) {
-                        moveParams.remove(1);
+                    Board newBoard = null;
+                    try {
+                        newBoard = gameBoard.move(source.getCol(), source.getRow(),
+                                destination.getCol(), destination.getRow());
+                    } catch (IllegalMoveException illegalMoveException) {
                         Toolkit.getDefaultToolkit().beep();
-                    } else {
-                        undoStack.push(gameBoard.clone());
-                        gameBoard = newBoard;
-                        if (gameBoard.isGameOver()) {
-                            announceWinner();
+                    } finally {
+                        if (newBoard == null) {
+                            moveParams.remove(1);
+                            Toolkit.getDefaultToolkit().beep();
                         } else {
+                            undoStack.push(gameBoard.clone());
+                            gameBoard = newBoard;
+                            if (gameBoard.isGameOver()) {
+                                announceWinner();
+                            } else {
 
-                            // It was a successful move.
-                            updateAmountOfPawns();
-                            updateGameBoard();
-                            moveParams.get(0).setSelectedPawn(false);
-                            moveParams.clear();
-                            chessBoardPanel.repaint();
-                            machineMoveThread = new MachineMoveThread();
-                            machineMoveThread.start();
+                                // It was a successful move.
+                                updateAmountOfPawns();
+                                updateGameBoard();
+                                moveParams.get(0).setSelectedPawn(false);
+                                moveParams.clear();
+                                chessBoardPanel.repaint();
+                                machineMoveThread = new MachineMoveThread();
+                                machineMoveThread.start();
+                            }
                         }
                     }
                 }
