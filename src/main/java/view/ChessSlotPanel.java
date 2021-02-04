@@ -60,14 +60,11 @@ public class ChessSlotPanel extends JPanel {
         slotButton.setBorderPainted(false);
         slotButton.setPreferredSize(this.getMaximumSize());
 
-        slotButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                GUI parentFrame = (GUI) getTopLevelAncestor();
-                JButton source = (JButton) e.getSource();
+        slotButton.addActionListener(e -> {
+            GUI parentFrame = (GUI) getTopLevelAncestor();
+            JButton source = (JButton) e.getSource();
 
-                parentFrame.attemptMove((ChessSlotPanel) source.getParent());
-            }
+            parentFrame.attemptMove((ChessSlotPanel) source.getParent());
         });
         this.add(slotButton);
     }

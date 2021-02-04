@@ -339,7 +339,8 @@ public class GUI extends JFrame {
                 JComboBox<String> selectedBox =
                         (JComboBox<String>) e.getSource();
                 int selectedLevel =
-                        Integer.parseInt((String) selectedBox.getSelectedItem());
+                        Integer.parseInt((String) Objects.requireNonNull
+                                (selectedBox.getSelectedItem()));
 
                 DEFAULT_DIFFICULTY = selectedLevel;
                 gameBoard.setLevel(selectedLevel);
