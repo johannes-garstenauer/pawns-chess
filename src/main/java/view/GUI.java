@@ -17,6 +17,8 @@ import java.util.Stack;
 
 public class GUI extends JFrame {
 
+    private final static int FRAME_SIZE = 800;
+
     // This is the difficulty level of the machine opponent.
     private static int difficultyLevel = 3;
 
@@ -26,8 +28,8 @@ public class GUI extends JFrame {
     private int amountOfHumanPawns = Board.SIZE;
     private int amountOfMachinePawns = Board.SIZE;
 
-    private Board gameBoard;
-    private final JPanel chessBoardPanelWrapper = new JPanel();
+    private Board gameBoard = new ChessBoard(difficultyLevel, humanColor);
+    private final JPanel chessBoardPanelWithIndicesWrapper = new JPanel();
     private final JPanel chessBoardPanel = new JPanel();
     private final JPanel controlPanel = new JPanel();
 
@@ -40,6 +42,7 @@ public class GUI extends JFrame {
 
 
     private MachineMoveThread machineMoveThread = new MachineMoveThread();
+
     private class MachineMoveThread extends Thread {
 
         @Override
@@ -78,7 +81,7 @@ public class GUI extends JFrame {
                     // Move again if the human cannot move.
                     if (gameBoard.getNextPlayer() != Player.HUMAN) {
                         //System.err.println("Cannot Move!");
-                        this.run();
+                        //this.start();
                         //TODO: executeMachineMoved didnt work
                         //TODO rekursion klappt hier nicht :/
                     }
@@ -164,13 +167,9 @@ public class GUI extends JFrame {
 
     public GUI() {
         super("Pawns Chess");
-        constructNewBoard();
+        //constructNewBoard();
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        this.setSize(700, 700);
-
-        //TODO das is eig nicht so nice
-        this.setResizable(false);
 
         //TODO das bringt was
         //this.setMinimumSize(new Dimension(700, 700));
@@ -180,77 +179,96 @@ public class GUI extends JFrame {
 
         this.setLayout(new BorderLayout());
 
-        initChessBoardPanel();
         initControlPanel();
+        initChessBoardPanel();
+        this.setSize(FRAME_SIZE,
+                FRAME_SIZE + controlPanel.getPreferredSize().height);
         this.setVisible(true);
 
-        //TODO besser? -> thread als runnable?
-        // Stops the extra thread when the window is closed.
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                super.windowClosed(e);
                 machineMoveThread.stopThread();
+                super.windowClosed(e);
             }
         });
     }
 
 
     private void initChessBoardPanel() {
-        chessBoardPanelWrapper.setLayout(new BorderLayout());
-        chessBoardPanel.setLayout(new GridLayout(Board.SIZE, Board.SIZE));
+        chessBoardPanelWithIndicesWrapper.setLayout(new BorderLayout());
+        JPanel chessBoardPanelFlowWrapper = new JPanel(new FlowLayout());
+
+        chessBoardPanel.setLayout(new GridLayout(Board.SIZE,
+                Board.SIZE));
         for (int row = 1; row <= Board.SIZE; row++) {
             for (int col = 1; col <= Board.SIZE; col++) {
-
-                //TODO ist diese zuweisung richtig? d.h. z.B. slots links oben
-                // ist im panel auch links oben?
                 ChessSlotPanel chessSlot = new ChessSlotPanel(gameBoard,
                         col, Board.SIZE + 1 - row);
                 chessSlotPanels.add(chessSlot);
-                //slots[row - 1][col - 1] = chessSlot;
                 chessBoardPanel.add(chessSlot);
             }
         }
-        chessBoardPanelWrapper.add(chessBoardPanel, BorderLayout.CENTER);
-        this.add(chessBoardPanelWrapper, BorderLayout.CENTER);
 
+        chessBoardPanelFlowWrapper.add(chessBoardPanel);
+        chessBoardPanelWithIndicesWrapper.add(chessBoardPanelFlowWrapper, BorderLayout.CENTER);
+        this.add(chessBoardPanelWithIndicesWrapper, BorderLayout.CENTER);
 
         JPanel verticalIndicesWest = new JPanel(new GridLayout(Board.SIZE, 1));
         JPanel verticalIndicesEast = new JPanel(new GridLayout(Board.SIZE, 1));
         JPanel horizontalIndicesNorth = new JPanel(new GridLayout(1, Board.SIZE));
         JPanel horizontalIndicesSouth = new JPanel(new GridLayout(1, Board.SIZE));
 
-        //TODO
-        // Add spacing to horizontal indices.
-        horizontalIndicesNorth.setBorder(new EmptyBorder(0,
-                this.getWidth() / 10, 0,
-                this.getWidth() / 15));
-        horizontalIndicesSouth.setBorder(new EmptyBorder(0, 100,
-                0, 0));
-
-        System.out.println(verticalIndicesEast.getWidth());
-
         for (int i = Board.SIZE; i >= 1; i--) {
             verticalIndicesWest.add(new JLabel(String.valueOf(i)));
             verticalIndicesEast.add(new JLabel(String.valueOf(i)));
-            horizontalIndicesSouth.add(new JLabel(String.valueOf(Board.SIZE + 1 - i)));
-            horizontalIndicesNorth.add(new JLabel(String.valueOf(Board.SIZE + 1 - i)));
+            horizontalIndicesSouth.add(
+                    new JLabel(String.valueOf(Board.SIZE + 1 - i)));
+            horizontalIndicesNorth.add(
+                    new JLabel(String.valueOf(i)));
         }
-        chessBoardPanelWrapper.add(verticalIndicesWest, BorderLayout.WEST);
-        chessBoardPanelWrapper.add(verticalIndicesEast, BorderLayout.EAST);
-        chessBoardPanelWrapper.add(horizontalIndicesNorth, BorderLayout.NORTH);
-        chessBoardPanelWrapper.add(horizontalIndicesSouth, BorderLayout.SOUTH);
 
-        /*
-        chessBoardPanelWrapper.addComponentListener(new ComponentListener() {
+        int sideDist =
+                verticalIndicesWest.getPreferredSize().width;
+        horizontalIndicesNorth.setBorder(new EmptyBorder(0, sideDist,
+                0, sideDist));
+        horizontalIndicesSouth.setBorder(new EmptyBorder(0, sideDist,
+                0, sideDist));
+
+        chessBoardPanelWithIndicesWrapper.add(horizontalIndicesNorth, BorderLayout.NORTH);
+        chessBoardPanelWithIndicesWrapper.add(horizontalIndicesSouth, BorderLayout.SOUTH);
+        chessBoardPanelWithIndicesWrapper.add(verticalIndicesWest, BorderLayout.WEST);
+        chessBoardPanelWithIndicesWrapper.add(verticalIndicesEast, BorderLayout.EAST);
+
+        // In order to have the chessboard initially in a proper size set the
+        // boards preferred size to be a square within the frame.
+        int min =
+                (int) (FRAME_SIZE - (horizontalIndicesSouth.getPreferredSize().height
+                                        + horizontalIndicesNorth.getPreferredSize().height
+                                        + 2.5 * controlPanel.getPreferredSize().height));
+
+        int a =
+                FRAME_SIZE - (horizontalIndicesSouth.getPreferredSize().height + horizontalIndicesNorth.getPreferredSize().height);
+        int b =
+                FRAME_SIZE - (verticalIndicesEast.getPreferredSize().height + verticalIndicesWest.getPreferredSize().height);
+
+        int m = Math.min(a,b);
+        System.out.println(chessBoardPanelFlowWrapper.getPreferredSize()+
+                "flow");
+        chessBoardPanel.setPreferredSize(new Dimension(m, m));
+
+        this.addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent e) {
-                System.out.println("fak");
-                int min = Math.min(chessBoardPanel.getTopLevelAncestor().getWidth(),
-                        chessBoardPanel.getTopLevelAncestor().getHeight());
-                chessBoardPanel.setBounds(new Rectangle(min, min));
-            }
 
+                int min = Math.min(chessBoardPanelFlowWrapper.getHeight(),
+                        chessBoardPanelFlowWrapper.getWidth());
+                chessBoardPanel.setPreferredSize(new Dimension(min - 1,
+                        min - 1));
+
+                //chessBoardPanel.repaint();
+                //chessBoardPanelWithIndicesWrapper.repaint();
+            }
 
             @Override
             public void componentMoved(ComponentEvent e) {
@@ -267,8 +285,6 @@ public class GUI extends JFrame {
 
             }
         });
-         */
-
     }
 
     private void initControlPanel() {
@@ -357,12 +373,11 @@ public class GUI extends JFrame {
         quitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (java.awt.Frame frame : java.awt.Frame.getFrames()) {
-                    machineMoveThread.stopThread();
+                JButton source = (JButton) e.getSource();
+                JFrame frame = (JFrame) source.getTopLevelAncestor();
 
-                    //TODO doppelt gemoppelt weil
-                    frame.dispose();
-                }
+                //TODO doppelt gemoppelt weil schon defaultcloseoperation?
+                frame.dispose();
             }
         });
         controlPanel.add(quitButton);
@@ -391,7 +406,8 @@ public class GUI extends JFrame {
 
         if (gameBoard.getOpeningPlayer() == Player.MACHINE) {
             //executeMachineMove();
-            machineMoveThread.run();
+            machineMoveThread = new MachineMoveThread();
+            machineMoveThread.start();
         } else {
             updateGameBoard();
             chessBoardPanel.repaint();
@@ -399,6 +415,7 @@ public class GUI extends JFrame {
     }
 
     public static void main(String[] args) {
+        //TODO why dat
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -422,6 +439,9 @@ public class GUI extends JFrame {
                 if (gameBoard.getSlot(newestMoveParam.getCol(),
                         newestMoveParam.getRow()) == gameBoard.getHumanColor()) {
                     addMoveParam(newestMoveParam);
+
+                    newestMoveParam.setSelectedPawn(true);
+                    newestMoveParam.repaint();
                 }
             } else if (moveParams.size() == 1) {
                 addMoveParam(newestMoveParam);
@@ -433,7 +453,9 @@ public class GUI extends JFrame {
                 Board newBoard = null;
                 try {
                     System.out.println("Move: ");
-                    System.out.println("(" + source.getCol() + ", " + source.getRow() + ") -> (" + destination.getCol() + ", " + destination.getRow() + ")");
+                    System.out.println("(" + source.getCol() + ", "
+                            + source.getRow() + ") -> (" + destination.getCol()
+                            + ", " + destination.getRow() + ")");
                     System.out.println();
                     newBoard = gameBoard.move(source.getCol(), source.getRow(),
                             destination.getCol(), destination.getRow());
@@ -446,16 +468,16 @@ public class GUI extends JFrame {
                         undoStack.push(gameBoard.clone());
                         gameBoard = newBoard;
                         if (gameBoard.isGameOver()) {
-                            ;
                             announceWinner();
                         } else {
                             updateAmountOfPawns();
                             updateGameBoard();
                             chessBoardPanel.repaint();
-                            //executeMachineMove();
-                            machineMoveThread.run();
+                            machineMoveThread = new MachineMoveThread();
+                            machineMoveThread.start();
                         }
                     }
+                    moveParams.get(0).setSelectedPawn(false);
                     moveParams.clear();
                 }
             } else {
@@ -506,11 +528,6 @@ public class GUI extends JFrame {
 
  */
     }
-
-
-    //TODO AUSSETZEN!!!
-    // Falls Mensch aussetzen muss
-    //executeMachineMove();
 
     private void announceWinner() {
         updateAmountOfPawns();
