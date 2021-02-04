@@ -338,6 +338,8 @@ public class GUI extends JFrame {
                     gameBoard = undoStack.pop();
                     updateGameBoard();
                     updateAmountOfPawns();
+                    moveParams.clear();
+                    resetSelectedChessSlotPanels();
                     chessBoardPanel.repaint();
                 } else {
                     Toolkit.getDefaultToolkit().beep();
@@ -397,7 +399,8 @@ public class GUI extends JFrame {
     private void constructNewBoard() {
         machineMoveThread.stopThread();
         machineMoveThread = new MachineMoveThread();
-
+        resetSelectedChessSlotPanels();
+        moveParams.clear();
         undoStack.clear();
         amountOfMachinePawns = Board.SIZE;
         amountOfHumanPawns = Board.SIZE;
@@ -444,6 +447,20 @@ public class GUI extends JFrame {
                     newestMoveParam.repaint();
                 }
             } else if (moveParams.size() == 1) {
+
+                // Reselect the pawn to be moved.
+                if (gameBoard.getSlot(newestMoveParam.getCol(),
+                        newestMoveParam.getRow()) == gameBoard.getHumanColor()) {
+                    moveParams.get(0).setSelectedPawn(false);
+                    moveParams.get(0).repaint();
+                    moveParams.clear();
+
+                    addMoveParam(newestMoveParam);
+                    newestMoveParam.setSelectedPawn(true);
+                    newestMoveParam.repaint();
+                }
+
+                // Chose a slot to move the selected pawn to.
                 addMoveParam(newestMoveParam);
 
                 //attempt move
@@ -460,9 +477,11 @@ public class GUI extends JFrame {
                     newBoard = gameBoard.move(source.getCol(), source.getRow(),
                             destination.getCol(), destination.getRow());
                 } catch (IllegalMoveException illegalMoveException) {
+                    moveParams.remove(1);
                     Toolkit.getDefaultToolkit().beep();
                 } finally {
                     if (newBoard == null) {
+                        moveParams.remove(1);
                         Toolkit.getDefaultToolkit().beep();
                     } else {
                         undoStack.push(gameBoard.clone());
@@ -470,15 +489,17 @@ public class GUI extends JFrame {
                         if (gameBoard.isGameOver()) {
                             announceWinner();
                         } else {
+
+                            // It was a successful move.
                             updateAmountOfPawns();
                             updateGameBoard();
+                            moveParams.get(0).setSelectedPawn(false);
+                            moveParams.clear();
                             chessBoardPanel.repaint();
                             machineMoveThread = new MachineMoveThread();
                             machineMoveThread.start();
                         }
                     }
-                    moveParams.get(0).setSelectedPawn(false);
-                    moveParams.clear();
                 }
             } else {
                 throw new IllegalStateException("The move params are in an "
@@ -547,6 +568,12 @@ public class GUI extends JFrame {
     private void updateGameBoard() {
         for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
             chessSlotPanel.setGameBoard(gameBoard);
+        }
+    }
+
+    private void resetSelectedChessSlotPanels() {
+        for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+            chessSlotPanel.setSelectedPawn(false);
         }
     }
 }
