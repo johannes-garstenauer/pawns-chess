@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 
 /**
@@ -58,6 +59,8 @@ public class GUI extends JFrame {
 
     // On this thread the machine move is calculated.
     private MachineMoveThread machineMoveThread = new MachineMoveThread();
+
+    //TODO: mehr hilfsmethoden erstellen.
 
     /**
      * A thread with the sole purpose of calculating a machine move.
@@ -299,10 +302,13 @@ public class GUI extends JFrame {
         JPanel controlPanelWrapper = new JPanel(new BorderLayout());
         controlPanelWrapper.setPreferredSize(new Dimension(FRAME_SIZE,
                 (int) (FRAME_SIZE * 0.05)));
+        this.add(controlPanelWrapper, BorderLayout.SOUTH);
 
+        // Place the human pawns number.
         humanPawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
         humanPawnsNumber.setBorder(new EmptyBorder(0, 10, 0, 10));
 
+        // Place the machine pawns number with a black background.
         JPanel machinePawnsNumberPanel = new JPanel();
         machinePawnsNumberPanel.setBackground(java.awt.Color.BLACK);
         machinePawnsNumber.setBackground(java.awt.Color.WHITE);
@@ -310,22 +316,23 @@ public class GUI extends JFrame {
         machinePawnsNumberPanel.add(machinePawnsNumber);
         machinePawnsNumberPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
 
-
-        // This is the panel that contains the buttons.
-        JPanel controlPanel = new JPanel(new FlowLayout());
-
-        controlPanelWrapper.add(controlPanel, BorderLayout.CENTER);
         controlPanelWrapper.add(humanPawnsNumber,
                 BorderLayout.WEST);
         controlPanelWrapper.add(machinePawnsNumberPanel,
                 BorderLayout.EAST);
 
+        // This is the panel that contains the buttons.
+        JPanel controlPanel = new JPanel(new FlowLayout());
+        controlPanelWrapper.add(controlPanel, BorderLayout.CENTER);
 
+        // Add the levels combobox. Levels are updated immediately, but not
+        // while the machine is moving.
         controlPanel.add(new JLabel("Levels:"));
         String[] levels = {"1", "2", "3", "4"};
         JComboBox<String> levelMenu = new JComboBox<>(levels);
         levelMenu.setSelectedIndex(DEFAULT_DIFFICULTY - 1);
-        gameBoard.setLevel(Integer.parseInt((String) levelMenu.getSelectedItem()));
+        gameBoard.setLevel(Integer.parseInt
+                ((String) Objects.requireNonNull(levelMenu.getSelectedItem())));
         levelMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -340,18 +347,25 @@ public class GUI extends JFrame {
         });
         controlPanel.add(levelMenu);
 
+        // Add the undo button in order provide the ability to undo the last
+        // move.
         JButton undoButton = new JButton("Undo");
         undoButton.setMnemonic('U');
         undoButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!undoStack.isEmpty()) {
+
+                    // The thread should be stopped as its machine move will
+                    // no longer be required.
                     machineMoveThread.stopThread();
                     machineMoveThread = new MachineMoveThread();
+
+                    // Reset and update the GUI, afterwards paint.
                     gameBoard = undoStack.pop();
+                    moveParams.clear();
                     updateGameBoard();
                     updateAndPaintAmountOfPawns();
-                    moveParams.clear();
                     resetSelectedChessSlotPanels();
                     chessBoardPanel.repaint();
                 } else {
@@ -362,6 +376,7 @@ public class GUI extends JFrame {
         });
         controlPanel.add(undoButton);
 
+        // Add a button to allow the creation of a new game.
         JButton newButton = new JButton("New");
         newButton.setMnemonic('N');
         newButton.addActionListener(new ActionListener() {
@@ -372,6 +387,8 @@ public class GUI extends JFrame {
         });
         controlPanel.add(newButton);
 
+        // Add a button to allow the creation of a new game with switched
+        // colors.
         JButton switchButton = new JButton("Switch");
         switchButton.setMnemonic('S');
         switchButton.addActionListener(new ActionListener() {
@@ -383,6 +400,7 @@ public class GUI extends JFrame {
         });
         controlPanel.add(switchButton);
 
+        // Add a button for a clean quit to the program.
         JButton quitButton = new JButton("Quit");
         quitButton.setMnemonic('Q');
         quitButton.addActionListener(new ActionListener() {
@@ -390,16 +408,15 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 JButton source = (JButton) e.getSource();
                 JFrame frame = (JFrame) source.getTopLevelAncestor();
-
-                //TODO doppelt gemoppelt weil schon defaultcloseoperation?
                 frame.dispose();
             }
         });
         controlPanel.add(quitButton);
-
-        this.add(controlPanelWrapper, BorderLayout.SOUTH);
     }
 
+    /**
+     * Update and repaint the amount of pawns in the control panel.
+     */
     private void updateAndPaintAmountOfPawns() {
         humanPawnsNumber.setText
                 (String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));
@@ -409,19 +426,27 @@ public class GUI extends JFrame {
         machinePawnsNumber.repaint();
     }
 
+    /**
+     * Start a new game. To do that, reset the classes attributes, then repaint.
+     */
     private void constructNewBoard() {
-        machineMoveThread.stopThread();
-        machineMoveThread = new MachineMoveThread();
+
+        // Kill the current thread as its results will not be needed.
+        if (machineMoveThread.isAlive()) {
+            machineMoveThread.stopThread();
+            machineMoveThread = new MachineMoveThread();
+        }
+
+        // Reset the classes attributes.
         resetSelectedChessSlotPanels();
         moveParams.clear();
         undoStack.clear();
         humanPawnsNumber.setText(String.valueOf(Board.SIZE));
         machinePawnsNumber.setText(String.valueOf(Board.SIZE));
-
         gameBoard = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
 
+        // If the machine can start, make a move. Else repaint immediately.
         if (gameBoard.getOpeningPlayer() == Player.MACHINE) {
-            //executeMachineMove();
             machineMoveThread = new MachineMoveThread();
             machineMoveThread.start();
         } else {
@@ -430,8 +455,13 @@ public class GUI extends JFrame {
         }
     }
 
+    /**
+     * Calls on the event handler to create a new {@code GUI}. Therefore
+     * opening the frame and starting a new game.
+     *
+     * @param args String array of arguments.
+     */
     public static void main(String[] args) {
-        //TODO why dat
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -440,104 +470,144 @@ public class GUI extends JFrame {
         });
     }
 
-    private void addMoveParam(ChessSlotPanel moveParam) {
-        moveParams.add(moveParam);
-    }
 
+    /**
+     * Attempts to make a move or graphically selects the selected slot,
+     * depending on the behaviour of the player. If the given slot is illegal
+     * the user will be informed by a beep. If it can be ignored it will
+     * assuming a mis-click by the user.
+     *
+     * @param newestMoveParam The slot on the chessboard that was selected by
+     *                        the player.
+     */
     //TODO aussetzen
     public void attemptMove(ChessSlotPanel newestMoveParam) {
-        if (gameBoard.isGameOver()) {
-            updateGameBoard();
-            chessBoardPanel.repaint();
-            announceWinner();
+        if (newestMoveParam == null) {
+            throw new IllegalArgumentException("No move can be attempted with"
+                    + " this slot.");
         } else {
-            if (moveParams.isEmpty()) {
-                if (gameBoard.getSlot(newestMoveParam.getCol(),
-                        newestMoveParam.getRow()) == gameBoard.getHumanColor()) {
-                    addMoveParam(newestMoveParam);
+            if (gameBoard.isGameOver()) {
+                announceWinner();
+            } else {
 
-                    newestMoveParam.setSelectedPawn(true);
-                    newestMoveParam.repaint();
-                }
-            } else if (moveParams.size() == 1) {
+                // If the human selects a friendly pawn highlight it and remember
+                // it internally.
+                if (moveParams.isEmpty()) {
+                    if (gameBoard.getSlot(newestMoveParam.getCol(),
+                            newestMoveParam.getRow())
+                            == gameBoard.getHumanColor()) {
 
-                // Reselect the pawn to be moved.
-                if (gameBoard.getSlot(newestMoveParam.getCol(),
-                        newestMoveParam.getRow()) == gameBoard.getHumanColor()) {
-                    moveParams.get(0).setSelectedPawn(false);
-                    moveParams.get(0).repaint();
-                    moveParams.clear();
+                        moveParams.add(newestMoveParam);
+                        newestMoveParam.setSelectedPawn(true);
+                        newestMoveParam.repaint();
+                    }
+                } else if (moveParams.size() == 1) {
 
-                    addMoveParam(newestMoveParam);
-                    newestMoveParam.setSelectedPawn(true);
-                    newestMoveParam.repaint();
-                } else {
+                    // See if the player wants to change the pawn he has selected.
+                    if (gameBoard.getSlot(newestMoveParam.getCol(),
+                            newestMoveParam.getRow())
+                            == gameBoard.getHumanColor()) {
 
-                    // Chose a slot to move the selected pawn to.
-                    addMoveParam(newestMoveParam);
+                        moveParams.get(0).setSelectedPawn(false);
+                        moveParams.get(0).repaint();
+                        moveParams.clear();
 
-                    //attempt move
-                    ChessSlotPanel source = moveParams.get(0);
-                    ChessSlotPanel destination = moveParams.get(1);
+                        moveParams.add(newestMoveParam);
+                        newestMoveParam.setSelectedPawn(true);
+                        newestMoveParam.repaint();
+                    } else {
 
-                    Board newBoard = null;
-                    try {
-                        newBoard = gameBoard.move(source.getCol(), source.getRow(),
-                                destination.getCol(), destination.getRow());
-                    } catch (IllegalMoveException illegalMoveException) {
-                        Toolkit.getDefaultToolkit().beep();
-                    } finally {
-                        if (newBoard == null) {
+                        // Determine the destination and source of the move.
+                        moveParams.add(newestMoveParam);
+                        ChessSlotPanel source = moveParams.get(0);
+                        ChessSlotPanel destination = moveParams.get(1);
+
+                        Board newBoard = null;
+                        try {
+
+                            // Let the model attempt to perform a move.
+                            newBoard = gameBoard.move(source.getCol(),
+                                    source.getRow(), destination.getCol(),
+                                    destination.getRow());
+                        } catch (IllegalMoveException illegalMoveException) {
+
+                            // Notify the user if his move was illegal.
                             moveParams.remove(1);
                             Toolkit.getDefaultToolkit().beep();
-                        } else {
-                            undoStack.push(gameBoard.clone());
-                            gameBoard = newBoard;
-                            if (gameBoard.isGameOver()) {
-                                announceWinner();
+                        } finally {
+                            if (newBoard == null) {
+
+                                // Notify the user if his move was illegal.
+                                moveParams.remove(1);
+                                Toolkit.getDefaultToolkit().beep();
                             } else {
 
-                                // It was a successful move.
-                                updateAndPaintAmountOfPawns();
-                                updateGameBoard();
-                                moveParams.get(0).setSelectedPawn(false);
-                                moveParams.clear();
-                                chessBoardPanel.repaint();
-                                machineMoveThread = new MachineMoveThread();
-                                machineMoveThread.start();
+                                // Remember the last move.
+                                undoStack.push(gameBoard.clone());
+                                gameBoard = newBoard;
+                                if (gameBoard.isGameOver()) {
+                                    announceWinner();
+                                } else {
+
+                                    // Update and repaint if the move was
+                                    // successful.
+                                    updateAndPaintAmountOfPawns();
+                                    updateGameBoard();
+                                    moveParams.get(0).setSelectedPawn(false);
+                                    moveParams.clear();
+                                    chessBoardPanel.repaint();
+                                    machineMoveThread = new MachineMoveThread();
+                                    machineMoveThread.start();
+                                }
                             }
                         }
                     }
+                } else {
+                    throw new IllegalStateException("The move params are in an "
+                            + "illegal state!");
                 }
-            } else {
-                throw new IllegalStateException("The move params are in an "
-                        + "illegal state!");
             }
         }
     }
 
+    /**
+     * Displays the winner to the user. Restricts all further movements.
+     */
     private void announceWinner() {
+        assert (gameBoard.isGameOver());
+
+        // Update and repaint the board.
         updateAndPaintAmountOfPawns();
         updateGameBoard();
         resetSelectedChessSlotPanels();
         chessBoardPanel.repaint();
 
         if (gameBoard.getWinner() == Player.HUMAN) {
-            JOptionPane.showMessageDialog(null, "You won!");
+            JOptionPane.showMessageDialog(null,
+                    "You won!");
         } else if (gameBoard.getWinner() == Player.MACHINE) {
-            JOptionPane.showMessageDialog(null, "You lost.");
+            JOptionPane.showMessageDialog(null,
+                    "You lost.");
         } else {
-            JOptionPane.showMessageDialog(null, "It's a draw.");
+            JOptionPane.showMessageDialog(null,
+                    "It's a draw.");
         }
-        Toolkit.getDefaultToolkit().beep();
     }
 
+    /**
+     * Inform the slots of the chessboard about changes in the model.
+     */
     private void updateGameBoard() {
+        assert !chessSlotPanels.isEmpty();
+
         for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
             chessSlotPanel.setGameBoard(gameBoard);
         }
     }
 
+    /**
+     * Reset all selected chess slots (they are highlighted in cyan).
+     */
     private void resetSelectedChessSlotPanels() {
         for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
             chessSlotPanel.setSelectedPawn(false);
