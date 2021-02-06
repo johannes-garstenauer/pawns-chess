@@ -60,8 +60,6 @@ public class GUI extends JFrame {
     // On this thread the machine move is calculated.
     private MachineMoveThread machineMoveThread = new MachineMoveThread();
 
-    //TODO: mehr hilfsmethoden erstellen.
-
     /**
      * A thread with the sole purpose of calculating a machine move.
      */
@@ -78,44 +76,52 @@ public class GUI extends JFrame {
 
             // Disable the humans possibility to move while the machine has not
             // yet  moved.
-            for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
-                chessSlotPanel.getSlotButton().setEnabled(false);
-            }
+            setEnabledOnChessBoardPanels(false);
 
-            try {
-                gameBoard = gameBoard.machineMove();
-            } catch (IllegalMoveException illegalMoveException) {
-                if (gameBoard.isGameOver()) {
-                    announceWinner();
-                }
-            } finally {
-                if (gameBoard.isGameOver()) {
-                    announceWinner();
-                } else {
+            if (gameBoard.getNextPlayer() != Player.MACHINE) {
 
-                    // Update the components of the changes made by the move.
-                    updateAndPaintAmountOfPawns();
-                    updateGameBoard();
-
-                    // Let the event queue handle the repaint.
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            chessBoardPanel.repaint();
-                        }
-                    });
-
-                    // Move again if the human cannot move.
-                    if (gameBoard.getNextPlayer() != Player.HUMAN) {
-                        //System.err.println("Cannot Move!");
-                        //this.start();
-                        //TODO: executeMachineMoved didnt work
-                        //TODO rekursion klappt hier nicht :/
+                // Inform the player, that he has to move again.
+                JOptionPane.showMessageDialog(null,
+                        "Machine cannot move, please move again.");
+            } else {
+                try {
+                    gameBoard = gameBoard.machineMove();
+                } catch (IllegalMoveException illegalMoveException) {
+                    if (gameBoard.isGameOver()) {
+                        announceWinner();
                     }
+                } finally {
+                    if (gameBoard.isGameOver()) {
+                        announceWinner();
+                    } else {
 
-                    // Enable the humans possibility to move again.
-                    for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
-                        chessSlotPanel.getSlotButton().setEnabled(true);
+                        // Update the components about the changes made by the
+                        // move.
+                        updateAndPaintAmountOfPawns();
+                        updateGameBoard();
+
+                        // Let the event queue handle the repaint.
+                        SwingUtilities.invokeLater(chessBoardPanel::repaint);
+
+                        // Move again if the human cannot move. This seems
+                        // to be not functional due to a flaw in the model.
+                        if (gameBoard.getNextPlayer() != Player.HUMAN) {
+
+                            // Re-enable the humans possibility to move then
+                            // stop the thread.
+                            setEnabledOnChessBoardPanels(true);
+                            stopThread();
+
+                            // Inform the player, then move again.
+                            JOptionPane.showMessageDialog(null,
+                                    "You have to skip a move. "
+                                            + "Machine will move again.");
+                            MachineMoveThread thread = new MachineMoveThread();
+                            thread.run();
+                        }
+
+                        // Re-enable the humans possibility to move.
+                        setEnabledOnChessBoardPanels(true);
                     }
                 }
             }
@@ -241,8 +247,19 @@ public class GUI extends JFrame {
                 .getPreferredSize().getHeight() * 2);
         chessBoardPanel.setPreferredSize(new Dimension(boardSize, boardSize));
 
-        // Ensure that the chessboard always is a perfect square within the
-        // frame. Even when the frame is not.
+        reactToResize(chessBoardPanelFlowWrapper);
+    }
+
+    /**
+     * Ensure that the chessboard always is a perfect square within the
+     * frame. Even when the frame is not.
+     *
+     * @param chessBoardPanelFlowWrapper The lowest-level wrapper around the
+     *                                   {@code chessBoardPanel}.
+     */
+    private void reactToResize(JPanel chessBoardPanelFlowWrapper) {
+        assert chessBoardPanelFlowWrapper != null;
+
         this.addComponentListener(new ComponentListener() {
 
             /**
@@ -289,6 +306,11 @@ public class GUI extends JFrame {
         });
     }
 
+    //TODO;
+    private void initIndices() {
+
+    }
+
     /**
      * Initializes the control panel and the buttons contained within it.
      */
@@ -304,52 +326,28 @@ public class GUI extends JFrame {
                 (int) (FRAME_SIZE * 0.05)));
         this.add(controlPanelWrapper, BorderLayout.SOUTH);
 
-        // Place the human pawns number.
-        humanPawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
-        humanPawnsNumber.setBorder(new EmptyBorder(0, 10, 0, 10));
-
-        // Place the machine pawns number with a black background.
-        JPanel machinePawnsNumberPanel = new JPanel();
-        machinePawnsNumberPanel.setBackground(java.awt.Color.BLACK);
-        machinePawnsNumber.setBackground(java.awt.Color.WHITE);
-        machinePawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
-        machinePawnsNumberPanel.add(machinePawnsNumber);
-        machinePawnsNumberPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
-
-        controlPanelWrapper.add(humanPawnsNumber,
-                BorderLayout.WEST);
-        controlPanelWrapper.add(machinePawnsNumberPanel,
-                BorderLayout.EAST);
+        initPawnNumbers(controlPanelWrapper);
 
         // This is the panel that contains the buttons.
         JPanel controlPanel = new JPanel(new FlowLayout());
         controlPanelWrapper.add(controlPanel, BorderLayout.CENTER);
 
-        // Add the levels combobox. Levels are updated immediately, but not
-        // while the machine is moving.
-        controlPanel.add(new JLabel("Levels:"));
-        String[] levels = {"1", "2", "3", "4"};
-        JComboBox<String> levelMenu = new JComboBox<>(levels);
-        levelMenu.setSelectedIndex(DEFAULT_DIFFICULTY - 1);
-        gameBoard.setLevel(Integer.parseInt
-                ((String) Objects.requireNonNull(levelMenu.getSelectedItem())));
-        levelMenu.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JComboBox<String> selectedBox =
-                        (JComboBox<String>) e.getSource();
-                int selectedLevel =
-                        Integer.parseInt((String) Objects.requireNonNull
-                                (selectedBox.getSelectedItem()));
+        initLevelsBox(controlPanel);
+        initUndoButton(controlPanel);
+        initNewButton(controlPanel);
+        initSwitchButton(controlPanel);
+        initQuitButton(controlPanel);
+    }
 
-                DEFAULT_DIFFICULTY = selectedLevel;
-                gameBoard.setLevel(selectedLevel);
-            }
-        });
-        controlPanel.add(levelMenu);
+    /**
+     * Add the undo button in order provide the ability to undo the last
+     * move.
+     *
+     * @param controlPanel The panel containing the control elements.
+     */
+    private void initUndoButton(JPanel controlPanel) {
+        assert controlPanel != null;
 
-        // Add the undo button in order provide the ability to undo the last
-        // move.
         JButton undoButton = new JButton("Undo");
         undoButton.setMnemonic('U');
         undoButton.addActionListener(new ActionListener() {
@@ -372,12 +370,50 @@ public class GUI extends JFrame {
                 } else {
                     Toolkit.getDefaultToolkit().beep();
                 }
-
             }
         });
         controlPanel.add(undoButton);
+    }
 
-        // Add a button to allow the creation of a new game.
+    /**
+     * Add the levels combobox. Levels are updated immediately, but not
+     * while the machine is moving.
+     *
+     * @param controlPanel The panel containing the control elements.
+     */
+    private void initLevelsBox(JPanel controlPanel) {
+        assert controlPanel != null;
+
+        controlPanel.add(new JLabel("Levels:"));
+        String[] levels = {"1", "2", "3", "4"};
+        JComboBox<String> levelMenu = new JComboBox<>(levels);
+        levelMenu.setSelectedIndex(DEFAULT_DIFFICULTY - 1);
+        gameBoard.setLevel(Integer.parseInt
+                ((String) Objects.requireNonNull(levelMenu.getSelectedItem())));
+        levelMenu.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JComboBox<String> selectedBox =
+                        (JComboBox<String>) e.getSource();
+                int selectedLevel =
+                        Integer.parseInt((String) Objects.requireNonNull
+                                (selectedBox.getSelectedItem()));
+
+                DEFAULT_DIFFICULTY = selectedLevel;
+                gameBoard.setLevel(selectedLevel);
+            }
+        });
+        controlPanel.add(levelMenu);
+    }
+
+    /**
+     * Add a button to allow the creation of a new game.
+     *
+     * @param controlPanel The panel containing the control elements.
+     */
+    private void initNewButton(JPanel controlPanel) {
+        assert controlPanel != null;
+
         JButton newButton = new JButton("New");
         newButton.setMnemonic('N');
         newButton.addActionListener(new ActionListener() {
@@ -387,21 +423,16 @@ public class GUI extends JFrame {
             }
         });
         controlPanel.add(newButton);
+    }
 
-        // Add a button to allow the creation of a new game with switched
-        // colors.
-        JButton switchButton = new JButton("Switch");
-        switchButton.setMnemonic('S');
-        switchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                DEFAULT_HUMANCOLOR = Color.getOppositeColor(DEFAULT_HUMANCOLOR);
-                constructNewBoard();
-            }
-        });
-        controlPanel.add(switchButton);
+    /**
+     * Add a button for a clean quit to the program.
+     *
+     * @param controlPanel The panel containing the control elements.
+     */
+    private void initQuitButton(JPanel controlPanel) {
+        assert controlPanel != null;
 
-        // Add a button for a clean quit to the program.
         JButton quitButton = new JButton("Quit");
         quitButton.setMnemonic('Q');
         quitButton.addActionListener(new ActionListener() {
@@ -413,6 +444,54 @@ public class GUI extends JFrame {
             }
         });
         controlPanel.add(quitButton);
+    }
+
+    /**
+     * Add a button to allow the creation of a new game with switched
+     * colors.
+     *
+     * @param controlPanel The panel containing the control elements.
+     */
+    private void initSwitchButton(JPanel controlPanel) {
+        assert controlPanel != null;
+
+        JButton switchButton = new JButton("Switch");
+        switchButton.setMnemonic('S');
+        switchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                DEFAULT_HUMANCOLOR = Color.getOppositeColor(DEFAULT_HUMANCOLOR);
+                constructNewBoard();
+            }
+        });
+        controlPanel.add(switchButton);
+    }
+
+    /**
+     * Initiate the pawns numbers in the bottom left and right corners.
+     * They indicate how many pawns each player has remaining.
+     *
+     * @param controlPanelWrapper A wrapper around the {@code controlPanel}.
+     */
+    private void initPawnNumbers(JPanel controlPanelWrapper) {
+        assert controlPanelWrapper != null;
+
+        // Place the human pawns number.
+        humanPawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
+        humanPawnsNumber.setBorder(new EmptyBorder(0, 10, 0, 10));
+
+        // Place the machine pawns number with a black background.
+        JPanel machinePawnsNumberPanel = new JPanel();
+        machinePawnsNumberPanel.setBackground(java.awt.Color.BLACK);
+        machinePawnsNumber.setBackground(java.awt.Color.WHITE);
+        machinePawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
+        machinePawnsNumberPanel.add(machinePawnsNumber);
+        machinePawnsNumberPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
+
+        controlPanelWrapper.add(humanPawnsNumber,
+                BorderLayout.WEST);
+        controlPanelWrapper.add(machinePawnsNumberPanel,
+                BorderLayout.EAST);
     }
 
     /**
@@ -428,7 +507,7 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Start a new game. To do that, reset the classes attributes, then repaint.
+     * Starts a new game. Resets the classes attributes, then repaints.
      */
     private void constructNewBoard() {
 
@@ -442,6 +521,7 @@ public class GUI extends JFrame {
         resetSelectedChessSlotPanels();
         moveParams.clear();
         undoStack.clear();
+        setEnabledOnChessBoardPanels(true);
         humanPawnsNumber.setText(String.valueOf(Board.SIZE));
         machinePawnsNumber.setText(String.valueOf(Board.SIZE));
         gameBoard = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
@@ -463,12 +543,7 @@ public class GUI extends JFrame {
      * @param args String array of arguments.
      */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new GUI();
-            }
-        });
+        SwingUtilities.invokeLater(GUI::new);
     }
 
 
@@ -533,7 +608,7 @@ public class GUI extends JFrame {
                         } catch (IllegalMoveException illegalMoveException) {
 
                             // Notify the user if his move was illegal.
-                            moveParams.remove(1);
+                            //moveParams.remove(1);
                             Toolkit.getDefaultToolkit().beep();
                         } finally {
                             if (newBoard == null) {
@@ -557,6 +632,8 @@ public class GUI extends JFrame {
                                     moveParams.get(0).setSelectedPawn(false);
                                     moveParams.clear();
                                     chessBoardPanel.repaint();
+
+                                    // Let the machine perform its move.
                                     machineMoveThread = new MachineMoveThread();
                                     machineMoveThread.start();
                                 }
@@ -583,10 +660,15 @@ public class GUI extends JFrame {
         resetSelectedChessSlotPanels();
         chessBoardPanel.repaint();
 
+
         if (gameBoard.getWinner() == Player.HUMAN) {
             JOptionPane.showMessageDialog(null,
                     "You won!");
         } else if (gameBoard.getWinner() == Player.MACHINE) {
+
+            // Re-enable the humans possibility to move.
+            setEnabledOnChessBoardPanels(true);
+
             JOptionPane.showMessageDialog(null,
                     "You lost.");
         } else {
@@ -612,6 +694,18 @@ public class GUI extends JFrame {
     private void resetSelectedChessSlotPanels() {
         for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
             chessSlotPanel.setSelectedPawn(false);
+        }
+    }
+
+    /**
+     * Dis- or Enable the humans possibility to move on the board.
+     *
+     * @param enabled Enables the humans possibility to move on the board if
+     * {@code true}. Disables it if {@code false}.
+     */
+    private void setEnabledOnChessBoardPanels(boolean enabled) {
+        for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {
+            chessSlotPanel.getSlotButton().setEnabled(enabled);
         }
     }
 }

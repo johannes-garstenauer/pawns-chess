@@ -4,8 +4,6 @@ import model.chessboard.Board;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * This panel represents a tile of a chessboard. It has a button hidden
