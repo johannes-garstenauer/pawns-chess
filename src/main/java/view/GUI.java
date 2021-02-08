@@ -37,17 +37,18 @@ public class GUI extends JFrame {
             = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
 
     // This is the Panel on which the chessboard is being displayed.
-    private final JPanel chessBoardPanel = new JPanel(new GridLayout(Board.SIZE,
-            Board.SIZE));
+    private final JPanel chessBoardPanel =
+            new JPanel(new GridLayout(Board.SIZE + 2,
+                    Board.SIZE + 2));
 
     // On this stack the chessboards are stored in chronological order for the
     // purpose of being able to 'undo' a move.
     private final Stack<Board> undoStack = new Stack<>();
 
     // These labels display the amount of pawns a player possesses.
-    private final JLabel humanPawnsNumber
+    private final JLabel whitePawnsNumber
             = new JLabel(String.valueOf(Board.SIZE));
-    private final JLabel machinePawnsNumber
+    private final JLabel blackPawnsNumber
             = new JLabel(String.valueOf(Board.SIZE));
 
     // Collects all the panels contained within the chessboard.
@@ -174,77 +175,73 @@ public class GUI extends JFrame {
      */
     private void initChessBoardPanel() {
 
-        // Have a wrapper around the chessboard to place the indices around.
-        JPanel chessBoardPanelWithIndicesWrapper = new JPanel();
-        chessBoardPanelWithIndicesWrapper.setLayout(new BorderLayout());
-
-        // This wrapper should fill out the entire frame but leave some space
-        // for the control panels.
-        chessBoardPanelWithIndicesWrapper.setPreferredSize(new Dimension
-                (FRAME_SIZE, (int) (FRAME_SIZE * 0.95)));
-
         // This wrapper employs the flow layout, so that the size of the
         // chessboard within can be adapted when the frame is being resized.
         JPanel chessBoardPanelFlowWrapper = new JPanel(new FlowLayout());
 
+        // This wrapper should fill out the entire frame but leave some space
+        // for the control panels.
+        chessBoardPanelFlowWrapper.setPreferredSize(new Dimension
+                (FRAME_SIZE, (int) (FRAME_SIZE * 0.95)));
+
         // Fill the chessboard grid with panels. These panels contain the
         // functionality of the moves and take care of the graphics aspect.
-        for (int row = 1; row <= Board.SIZE; row++) {
-            for (int col = 1; col <= Board.SIZE; col++) {
-                ChessSlotPanel chessSlot = new ChessSlotPanel(gameBoard,
-                        col, Board.SIZE + 1 - row);
-                chessSlotPanels.add(chessSlot);
-                chessBoardPanel.add(chessSlot);
+        for (int row = Board.SIZE + 1; row >= 0; row--) {
+            for (int col = 0; col <= Board.SIZE + 1; col++) {
+
+                if (!(row > 0 && row <= Board.SIZE && col > 0
+                        && col <= Board.SIZE)) {
+
+                    // If this tile is not within the bounds of the actual,
+                    // playable chessboard.
+                    if (((col == 0 && row == 0)
+                            || (col == Board.SIZE + 1 && row == 0)
+                            || (row == Board.SIZE + 1 && col == 0)
+                            || (col == Board.SIZE + 1 && row == Board.SIZE + 1))) {
+
+                        // Add empty Label into corners.
+                        chessBoardPanel.add(new JLabel());
+
+                    } else if (col == 0 || col == Board.SIZE + 1) {
+
+                        // Add indices to sides.
+                        JLabel l = new JLabel(String.valueOf(row));
+
+                        int w =
+                                (int) (chessBoardPanelFlowWrapper.getPreferredSize().getWidth()) / (Board.SIZE + 2);
+
+                        // Fit the index with some distance to the chessboards
+                        // side.
+                        l.setBorder(new EmptyBorder(0,
+                                w / 2 - l.getPreferredSize().width, 0, w / 2 - l.getPreferredSize().width));
+                        chessBoardPanel.add(l);
+                    } else if ((row == 0 || row == Board.SIZE + 1)) {
+
+                        // Add indices to sides.
+                        JLabel l = new JLabel(String.valueOf(col));
+                        int w =
+                                (int) (chessBoardPanelFlowWrapper.getPreferredSize().getWidth()) / (Board.SIZE + 2);
+
+                        // Fit the index with some distance to the chessboards
+                        // edge.
+                        l.setBorder(new EmptyBorder(0, w / 2 - l.getPreferredSize().width, 0, 0));
+                        chessBoardPanel.add(l);
+                    }
+                } else {
+                    ChessSlotPanel chessSlot = new ChessSlotPanel(gameBoard,
+                            col, row);
+                    chessSlotPanels.add(chessSlot);
+                    chessBoardPanel.add(chessSlot);
+                }
             }
         }
         chessBoardPanelFlowWrapper.add(chessBoardPanel);
-        chessBoardPanelWithIndicesWrapper.add(chessBoardPanelFlowWrapper,
-                BorderLayout.CENTER);
-        this.add(chessBoardPanelWithIndicesWrapper, BorderLayout.CENTER);
-
-        // Create panels that contain the indices around the board.
-        JPanel verticalIndicesWest
-                = new JPanel(new GridLayout(Board.SIZE, 1));
-        JPanel verticalIndicesEast
-                = new JPanel(new GridLayout(Board.SIZE, 1));
-        JPanel horizontalIndicesNorth
-                = new JPanel(new GridLayout(1, Board.SIZE));
-        JPanel horizontalIndicesSouth
-                = new JPanel(new GridLayout(1, Board.SIZE));
-
-        for (int i = Board.SIZE; i >= 1; i--) {
-            verticalIndicesWest.add(new JLabel(String.valueOf(i)),
-                    SwingConstants.CENTER);
-            verticalIndicesEast.add(new JLabel(String.valueOf(i)),
-                    SwingConstants.CENTER);
-            horizontalIndicesSouth.add(
-                    new JLabel(String.valueOf(Board.SIZE - i + 1)));
-            horizontalIndicesNorth.add(
-                    new JLabel(String.valueOf(Board.SIZE - i + 1)));
-        }
-
-        // The distance needed to properly align the top and bottom indices.
-        int sideDist = (int) (chessBoardPanelWithIndicesWrapper
-                .getPreferredSize().getWidth() / Board.SIZE);
-        horizontalIndicesNorth.setBorder(new EmptyBorder(0, sideDist,
-                0, sideDist));
-        horizontalIndicesSouth.setBorder(new EmptyBorder(0, sideDist,
-                0, sideDist));
-
-        chessBoardPanelWithIndicesWrapper.add(horizontalIndicesNorth,
-                BorderLayout.NORTH);
-        chessBoardPanelWithIndicesWrapper.add(horizontalIndicesSouth,
-                BorderLayout.SOUTH);
-        chessBoardPanelWithIndicesWrapper.add(verticalIndicesWest,
-                BorderLayout.WEST);
-        chessBoardPanelWithIndicesWrapper.add(verticalIndicesEast,
-                BorderLayout.EAST);
+        this.add(chessBoardPanelFlowWrapper, BorderLayout.CENTER);
 
         // In order to have the chessboard initially in a proper size set the
         // boards preferred size to be a square within the frame.
-        int boardSize = (int) chessBoardPanelWithIndicesWrapper
-                .getPreferredSize().getHeight() - (int) (horizontalIndicesNorth
-                .getPreferredSize().getHeight() * 2);
+        int boardSize = (int) chessBoardPanelFlowWrapper.getPreferredSize()
+                .getHeight();
         chessBoardPanel.setPreferredSize(new Dimension(boardSize, boardSize));
 
         reactToResize(chessBoardPanelFlowWrapper);
@@ -304,11 +301,6 @@ public class GUI extends JFrame {
             public void componentHidden(ComponentEvent e) {
             }
         });
-    }
-
-    //TODO;
-    private void initIndices() {
-
     }
 
     /**
@@ -372,6 +364,8 @@ public class GUI extends JFrame {
                 }
             }
         });
+
+        undoButton.setToolTipText("Undo your last move.");
         controlPanel.add(undoButton);
     }
 
@@ -403,6 +397,7 @@ public class GUI extends JFrame {
                 gameBoard.setLevel(selectedLevel);
             }
         });
+        levelMenu.setToolTipText("Set the machine opponents difficulty level.");
         controlPanel.add(levelMenu);
     }
 
@@ -422,6 +417,7 @@ public class GUI extends JFrame {
                 constructNewBoard();
             }
         });
+        newButton.setToolTipText("Create a new game.");
         controlPanel.add(newButton);
     }
 
@@ -443,6 +439,7 @@ public class GUI extends JFrame {
                 frame.dispose();
             }
         });
+        quitButton.setToolTipText("Quit this program and close the window.");
         controlPanel.add(quitButton);
     }
 
@@ -464,6 +461,7 @@ public class GUI extends JFrame {
                 constructNewBoard();
             }
         });
+        switchButton.setToolTipText("Start a new game with switched colours.");
         controlPanel.add(switchButton);
     }
 
@@ -477,33 +475,45 @@ public class GUI extends JFrame {
         assert controlPanelWrapper != null;
 
         // Place the human pawns number.
-        humanPawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
-        humanPawnsNumber.setBorder(new EmptyBorder(0, 10, 0, 10));
+        whitePawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
+        whitePawnsNumber.setBorder(new EmptyBorder(0, 10, 0, 10));
 
         // Place the machine pawns number with a black background.
         JPanel machinePawnsNumberPanel = new JPanel();
         machinePawnsNumberPanel.setBackground(java.awt.Color.BLACK);
-        machinePawnsNumber.setBackground(java.awt.Color.WHITE);
-        machinePawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
-        machinePawnsNumberPanel.add(machinePawnsNumber);
+        blackPawnsNumber.setBackground(java.awt.Color.WHITE);
+        blackPawnsNumber.setFont(new Font("Serif", Font.PLAIN, 28));
+        machinePawnsNumberPanel.add(blackPawnsNumber);
         machinePawnsNumberPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
 
-        controlPanelWrapper.add(humanPawnsNumber,
+        controlPanelWrapper.add(whitePawnsNumber,
                 BorderLayout.WEST);
         controlPanelWrapper.add(machinePawnsNumberPanel,
                 BorderLayout.EAST);
+        whitePawnsNumber.setToolTipText("The amount of pawns of the white "
+                + "player.");
+        blackPawnsNumber.setToolTipText("The amount of pawns of the black "
+                + "player.");
     }
 
     /**
      * Update and repaint the amount of pawns in the control panel.
      */
     private void updateAndPaintAmountOfPawns() {
-        humanPawnsNumber.setText
-                (String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));
-        machinePawnsNumber.setText
-                (String.valueOf(gameBoard.getNumberOfTiles(Player.MACHINE)));
-        humanPawnsNumber.repaint();
-        machinePawnsNumber.repaint();
+
+        if (DEFAULT_HUMANCOLOR == Color.WHITE) {
+            whitePawnsNumber.setText
+                    (String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));
+            blackPawnsNumber.setText
+                    (String.valueOf(gameBoard.getNumberOfTiles(Player.MACHINE)));
+        } else {
+            whitePawnsNumber.setText
+                    (String.valueOf(gameBoard.getNumberOfTiles(Player.MACHINE)));
+            blackPawnsNumber.setText
+                    (String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));
+        }
+        SwingUtilities.invokeLater(whitePawnsNumber::repaint);
+        SwingUtilities.invokeLater(blackPawnsNumber::repaint);
     }
 
     /**
@@ -522,8 +532,8 @@ public class GUI extends JFrame {
         moveParams.clear();
         undoStack.clear();
         setEnabledOnChessBoardPanels(true);
-        humanPawnsNumber.setText(String.valueOf(Board.SIZE));
-        machinePawnsNumber.setText(String.valueOf(Board.SIZE));
+        whitePawnsNumber.setText(String.valueOf(Board.SIZE));
+        blackPawnsNumber.setText(String.valueOf(Board.SIZE));
         gameBoard = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
 
         // If the machine can start, make a move. Else repaint immediately.
@@ -546,7 +556,6 @@ public class GUI extends JFrame {
         SwingUtilities.invokeLater(GUI::new);
     }
 
-
     /**
      * Attempts to make a move or graphically selects the selected slot,
      * depending on the behaviour of the player. If the given slot is illegal
@@ -556,7 +565,6 @@ public class GUI extends JFrame {
      * @param newestMoveParam The slot on the chessboard that was selected by
      *                        the player.
      */
-    //TODO aussetzen
     public void attemptMove(ChessSlotPanel newestMoveParam) {
         if (newestMoveParam == null) {
             throw new IllegalArgumentException("No move can be attempted with"
@@ -608,7 +616,6 @@ public class GUI extends JFrame {
                         } catch (IllegalMoveException illegalMoveException) {
 
                             // Notify the user if his move was illegal.
-                            //moveParams.remove(1);
                             Toolkit.getDefaultToolkit().beep();
                         } finally {
                             if (newBoard == null) {
@@ -657,23 +664,27 @@ public class GUI extends JFrame {
         // Update and repaint the board.
         updateAndPaintAmountOfPawns();
         updateGameBoard();
-        resetSelectedChessSlotPanels();
-        chessBoardPanel.repaint();
 
+        resetSelectedChessSlotPanels();
+        SwingUtilities.invokeLater(chessBoardPanel::repaint);
 
         if (gameBoard.getWinner() == Player.HUMAN) {
             JOptionPane.showMessageDialog(null,
                     "You won!");
         } else if (gameBoard.getWinner() == Player.MACHINE) {
-
-            // Re-enable the humans possibility to move.
-            setEnabledOnChessBoardPanels(true);
-
             JOptionPane.showMessageDialog(null,
                     "You lost.");
         } else {
             JOptionPane.showMessageDialog(null,
                     "It's a draw.");
+        }
+
+        // Re-enable the humans possibility to move.
+        setEnabledOnChessBoardPanels(true);
+
+        // Kill the machine move.
+        if (machineMoveThread.isAlive()) {
+            machineMoveThread.stopThread();
         }
     }
 
@@ -701,7 +712,7 @@ public class GUI extends JFrame {
      * Dis- or Enable the humans possibility to move on the board.
      *
      * @param enabled Enables the humans possibility to move on the board if
-     * {@code true}. Disables it if {@code false}.
+     *                {@code true}. Disables it if {@code false}.
      */
     private void setEnabledOnChessBoardPanels(boolean enabled) {
         for (ChessSlotPanel chessSlotPanel : chessSlotPanels) {

@@ -3,6 +3,7 @@ package view;
 import model.chessboard.Board;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 
 /**
@@ -24,6 +25,7 @@ public class ChessSlotPanel extends JPanel {
     // Used to color tile cyan if this tiles pawn was selected to be moved.
     private boolean isSelectedPawn = false;
 
+
     /**
      * Constructor for a chessboard-slot.
      *
@@ -36,16 +38,17 @@ public class ChessSlotPanel extends JPanel {
 
         if (gameBoard == null) {
             throw new IllegalArgumentException("The board must not be null.");
-        } else if ((col < 1 || col > Board.SIZE) || (row < 1
-                || row > Board.SIZE)) {
+        } else if ((col < 0 || col > Board.SIZE + 1) || (row < 0
+                || row > Board.SIZE + 1)) {
             throw new IllegalArgumentException("The tiles position must be "
-                    + "within the board.");
+                    + "within the board or within the indexes");
         }
 
         this.gameBoard = gameBoard;
         this.col = col;
         this.row = row;
 
+        this.setBorder(new BevelBorder(BevelBorder.RAISED));
         initSlotButton();
     }
 
@@ -75,8 +78,8 @@ public class ChessSlotPanel extends JPanel {
      * @param g A graphics element.
      */
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
 
         // Create chess pattern or highlight.
         if (isSelectedPawn) {
@@ -121,6 +124,7 @@ public class ChessSlotPanel extends JPanel {
             g2.fillOval(centerX - (getWidth() / 6), centerY - (getHeight() / 3),
                     getWidth() / 3, getHeight() / 3);
         }
+
     }
 
     /**
@@ -165,7 +169,7 @@ public class ChessSlotPanel extends JPanel {
      * pawn. This triggers the panel to be highlighted whenever it is redrawn.
      *
      * @param isSelectedPawn {@code true} if the panel was selected. {@code
-     * false} if the panel is meant to be unselected.
+     *                       false} if the panel is meant to be unselected.
      */
     public void setSelectedPawn(boolean isSelectedPawn) {
         this.isSelectedPawn = isSelectedPawn;
