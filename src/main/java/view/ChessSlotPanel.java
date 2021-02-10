@@ -5,6 +5,7 @@ import model.chessboard.Board;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
+import java.util.Collections;
 
 /**
  * This panel represents a tile of a chessboard. It has a button hidden
@@ -12,17 +13,32 @@ import java.awt.*;
  */
 public class ChessSlotPanel extends JPanel {
 
-    // The model of the chess game.
+    /**
+     * The model of the chess game.
+     */
     private Board gameBoard;
 
-    // The column and row on the chessboard which this tile represents.
+
+    /**
+     * The color of the pawn on this slot. {@code Color.NONE} if there is no
+     * pawn.
+     */
+    model.chessboard.Color pawnColor = model.chessboard.Color.NONE;
+
+    /**
+     * The column and row on the chessboard which this tile represents.
+     */
     private final int col;
     private final int row;
 
-    // A button hidden underneath the panel.
+    /**
+     * A button hidden underneath the panel.
+     */
     private final JButton slotButton = new JButton();
 
-    // Used to color tile cyan if this tiles pawn was selected to be moved.
+    /**
+     * Used to color tile cyan if this tiles pawn was selected to be moved.
+     */
     private boolean isSelectedPawn = false;
 
 
@@ -38,18 +54,17 @@ public class ChessSlotPanel extends JPanel {
 
         if (gameBoard == null) {
             throw new IllegalArgumentException("The board must not be null.");
-        } else if ((col < 0 || col > Board.SIZE + 1) || (row < 0
-                || row > Board.SIZE + 1)) {
+        } else if ((col < 1 || col > Board.SIZE) || (row < 1
+                || row > Board.SIZE)) {
             throw new IllegalArgumentException("The tiles position must be "
-                    + "within the board or within the indexes");
+                    + "within the board.");
+        } else {
+            this.gameBoard = gameBoard;
+            this.col = col;
+            this.row = row;
+            this.setBorder(new BevelBorder(BevelBorder.RAISED));
+            initSlotButton();
         }
-
-        this.gameBoard = gameBoard;
-        this.col = col;
-        this.row = row;
-
-        this.setBorder(new BevelBorder(BevelBorder.RAISED));
-        initSlotButton();
     }
 
     /**
@@ -124,7 +139,6 @@ public class ChessSlotPanel extends JPanel {
             g2.fillOval(centerX - (getWidth() / 6), centerY - (getHeight() / 3),
                     getWidth() / 3, getHeight() / 3);
         }
-
     }
 
     /**
@@ -147,7 +161,7 @@ public class ChessSlotPanel extends JPanel {
 
     /**
      * Updates the Game-Board. This is necessary for the determination of if
-     * there is pawn on this tile etc.
+     * there is pawn on this tile and more.
      *
      * @param gameBoard The model of a chessboard.
      */
@@ -156,12 +170,13 @@ public class ChessSlotPanel extends JPanel {
     }
 
     /**
-     * Getter for the button hidden underneath the panel.
+     * Enable or disable the slot button hidden beneath the slot.
      *
-     * @return The button hidden underneath the panel.
+     * @param enabled Enables the button if {@code true}. Disables it
+     *                otherwise.
      */
-    public JButton getSlotButton() {
-        return slotButton;
+    public void setSlotButtonEnabled(boolean enabled) {
+        slotButton.setEnabled(enabled);
     }
 
     /**
@@ -173,5 +188,26 @@ public class ChessSlotPanel extends JPanel {
      */
     public void setSelectedPawn(boolean isSelectedPawn) {
         this.isSelectedPawn = isSelectedPawn;
+    }
+
+    /**
+     * Sets the value for whether or not this slot contains a pawn. Sets the
+     * color of the pawn on this slot.
+     *
+     * @param hasPawn   {@code true} if this slot contains a pawn. {code false}
+     *                  otherwise.
+     * @param pawnColor The color of the pawn on this field. {@code Color.NONE}
+     *                  if there is no pawn on the slot.
+     */
+    public void setPawnColor(model.chessboard.Color pawnColor) {
+        this.pawnColor = pawnColor;
+    }
+
+    public model.chessboard.Color getPawnColor() {
+        return pawnColor;
+    }
+
+    public boolean isSelectedPawn() {
+        return isSelectedPawn;
     }
 }
