@@ -1,21 +1,18 @@
 package view;
 
 import model.chessboard.Board;
-import model.chessboard.ChessBoard;
-import model.chessboard.Color;
 import model.exceptions.IllegalMoveException;
 import model.player.Player;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is the Panel on which the chessboard is being displayed.
+ * This is the Panel on which the chessboard is being displayed. It contains the
+ * logic to interact with the gameplay mechanics of the model.
  */
 public class ChessBoardPanel extends JPanel {
 
@@ -23,16 +20,6 @@ public class ChessBoardPanel extends JPanel {
      * Collects all the panels contained within the chessboard.
      */
     ChessSlotPanel[][] slots = new ChessSlotPanel[Board.SIZE][Board.SIZE];
-
-    /**
-     * This is the default difficulty level of the machine opponent.
-     */
-    private static int DEFAULT_DIFFICULTY = 3;
-
-    /**
-     * This is the default color of the human player.
-     */
-    private static Color DEFAULT_HUMANCOLOR = Color.WHITE;
 
     /**
      * This is the Board on which the current game is being played.
@@ -109,7 +96,7 @@ public class ChessBoardPanel extends JPanel {
                                     "You have to skip a move. "
                                             + "Machine will move again.");
                             MachineMoveThread thread = new MachineMoveThread();
-                            thread.run();
+                            thread.start();
                         }
 
                         // Re-enable the humans possibility to move.
@@ -138,24 +125,16 @@ public class ChessBoardPanel extends JPanel {
      * a panel for each slot on the chessboard. The outer perimeter contains
      * labels  with the slots index row or column.
      *
-     * @param FRAME_SIZE The constant for the size of the window frame.
+     * @param gameBoard The model of the pawns-chess game.
+     * @param parent    The parent JPanel, which is a wrapper around this {@code
+     *                  ChessBoardPanel}
      */
-    public ChessBoardPanel(int FRAME_SIZE) {
-
-        this.gameBoard = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
-
-        // This wrapper employs the flow layout, so that the size of the
-        // chessboard within can be adapted when the frame is being resized.
-        JPanel chessBoardPanelFlowWrapper = new JPanel(new FlowLayout());
-
-        // This wrapper should fill out the entire frame but leave some space
-        // for the control panels.
-        chessBoardPanelFlowWrapper.setPreferredSize
-                (new Dimension(FRAME_SIZE, (int) (FRAME_SIZE * 0.95)));
+    public ChessBoardPanel(Board gameBoard, JPanel parent) {
+        this.gameBoard = gameBoard;
+        this.setLayout(new GridLayout(Board.SIZE + 2, Board.SIZE + 2));
 
         // Fill the chessboard grid with panels. These panels contain the
         // functionality of the moves and take care of the graphics aspect.
-        //TODO auslagern?
         for (int row = Board.SIZE + 1; row >= 0; row--) {
             for (int col = 0; col <= Board.SIZE + 1; col++) {
 
@@ -173,110 +152,49 @@ public class ChessBoardPanel extends JPanel {
                         this.add(new JLabel());
                     } else if (col == 0 || col == Board.SIZE + 1) {
                         addIndex(false, col, row,
-                                chessBoardPanelFlowWrapper);
+                                parent);
                     } else if ((row == 0 || row == Board.SIZE + 1)) {
                         addIndex(true, col, row,
-                                chessBoardPanelFlowWrapper);
+                                parent);
                     }
                 } else {
-                    ChessSlotPanel chessSlot = new ChessSlotPanel(gameBoard,
+                    ChessSlotPanel chessSlot
+                            = new ChessSlotPanel(gameBoard.getSlot(col, row),
                             col, row);
-                    slots[row][col] = chessSlot;
+                    slots[row - 1][col - 1] = chessSlot;
                     this.add(chessSlot);
                 }
             }
         }
-        chessBoardPanelFlowWrapper.add(this);
-        this.add(chessBoardPanelFlowWrapper, BorderLayout.CENTER);
 
         // In order to have the chessboard initially in a proper size set the
         // boards preferred size to be a square within the frame.
-        int boardSize = (int) chessBoardPanelFlowWrapper.getPreferredSize()
+        int boardSize = (int) parent.getPreferredSize()
                 .getHeight();
         this.setPreferredSize(new Dimension(boardSize, boardSize));
-
-        reactToResize(chessBoardPanelFlowWrapper);
     }
-
-    /**
-     * Ensure that the chessboard always is a perfect square within the
-     * frame. Even when the frame is not.
-     *
-     * @param chessBoardPanelFlowWrapper The lowest-level wrapper around the
-     *                                   {@code chessBoardPanel}.
-     */
-    private void reactToResize(JPanel chessBoardPanelFlowWrapper) {
-        assert chessBoardPanelFlowWrapper != null;
-
-        this.addComponentListener(new ComponentListener() {
-
-            /**
-             * Resize the chessboard to a square when the frame is being
-             * resized in order to make sure, that it is always squared and
-             * never cut off.
-             *
-             * @param e The event which was called.
-             */
-            @Override
-            public void componentResized(ComponentEvent e) {
-                int min = Math.min(chessBoardPanelFlowWrapper.getHeight(),
-                        chessBoardPanelFlowWrapper.getWidth());
-                ((ChessBoardPanel) e.getSource())
-                        .setPreferredSize(new Dimension(min - 1,
-                                min - 1));
-            }
-
-            /**
-             * This method is needed for the interface but not implemented.
-             *
-             * @param e The event which was called.
-             */
-            @Override
-            public void componentMoved(ComponentEvent e) {
-            }
-
-            /**
-             * This method is needed for the interface but not implemented.
-             *
-             * @param e The event which was called.
-             */
-            @Override
-            public void componentShown(ComponentEvent e) {
-            }
-
-            /**
-             * This method is needed for the interface but not implemented.
-             *
-             * @param e The event which was called.
-             */
-            @Override
-            public void componentHidden(ComponentEvent e) {
-            }
-        });
-    }
-
 
     /**
      * Adds an index to the chessboards edge for an easier overview on the
      * chessboard.
      *
-     * @param horizontal                 {@code true} if an index is to be added
-     *                                   to the top or bottom of the board.
-     *                                   {@code false} if an index is to be
-     *                                   added to the sides of the board.
-     * @param col                        The column position of the index.
-     * @param row                        The row position of the index.
-     * @param chessBoardPanelFlowWrapper The wrapper around the chessboard
-     *                                   panel.
+     * @param horizontal {@code true} if an index is to be added
+     *                   to the top or bottom of the board.
+     *                   {@code false} if an index is to be
+     *                   added to the sides of the board.
+     * @param col        The column position of the index.
+     * @param row        The row position of the index.
+     * @param parent     The wrapper around the chessboard
+     *                   panel.
      */
     private void addIndex(boolean horizontal, int col, int row,
-                          JPanel chessBoardPanelFlowWrapper) {
-        assert chessBoardPanelFlowWrapper != null;
+                          JPanel parent) {
+        assert parent != null;
         assert col == 0 || col == Board.SIZE + 1
                 || row == 0 || row == Board.SIZE + 1;
 
         //TODO rename
-        int w = (int) (chessBoardPanelFlowWrapper.getPreferredSize().getWidth())
+        int w = (int) (parent.getPreferredSize().getWidth())
                 / (Board.SIZE + 2);
 
         JLabel index = new JLabel();
@@ -314,6 +232,7 @@ public class ChessBoardPanel extends JPanel {
      * @param newestMoveParam The slot on the chessboard that was selected by
      *                        the player.
      */
+    //TODO auslagern
     public void attemptMove(ChessSlotPanel newestMoveParam) {
         if (newestMoveParam == null) {
             throw new IllegalArgumentException("No move can be attempted with"
@@ -391,7 +310,8 @@ public class ChessBoardPanel extends JPanel {
                                     updateSlots();
 
                                     // Let the machine perform its move.
-                                    machineMoveThread = new MachineMoveThread();
+                                    MachineMoveThread machineMoveThread
+                                            = new MachineMoveThread();
                                     machineMoveThread.start();
                                 }
                             }
@@ -416,6 +336,7 @@ public class ChessBoardPanel extends JPanel {
         // Update and repaint the board.
         frame.updateAndPaintAmountOfPawns();
         updateSlots();
+        //TODO
         SwingUtilities.invokeLater(this::updateSlots);
 
         if (gameBoard.getWinner() == Player.HUMAN) {
@@ -434,7 +355,7 @@ public class ChessBoardPanel extends JPanel {
 
         // Kill the machine move.
         if (machineMoveThread.isAlive()) {
-            machineMoveThread.stopThread();
+            haltMachineMoveThread();
         }
     }
 
@@ -445,8 +366,8 @@ public class ChessBoardPanel extends JPanel {
      *                {@code true}. Disables it if {@code false}.
      */
     private void setEnabledOnChessBoardPanels(boolean enabled) {
-        for (int row = 0; row <= Board.SIZE; row++) {
-            for (int col = 0; col <= Board.SIZE; col++) {
+        for (int row = 0; row < Board.SIZE; row++) {
+            for (int col = 0; col < Board.SIZE; col++) {
                 slots[row][col].setSlotButtonEnabled(enabled);
             }
         }
@@ -459,10 +380,12 @@ public class ChessBoardPanel extends JPanel {
      * been selected.
      */
     public void updateSlots() {
-        for (int row = 0; row <= Board.SIZE; row++) {
-            for (int col = 0; col <= Board.SIZE; col++) {
-                if (gameBoard.getSlot(col, row)
+        for (int row = 0; row < Board.SIZE; row++) {
+            for (int col = 0; col < Board.SIZE; col++) {
+                if (gameBoard.getSlot(col + 1, row + 1)
                         != slots[row][col].getPawnColor()) {
+                    slots[row][col].setPawnColor(gameBoard.getSlot(col + 1,
+                            row + 1));
                     slots[row][col].repaint();
                 } else if (slots[row][col].isSelectedPawn()) {
                     slots[row][col].setSelectedPawn(false);
@@ -472,12 +395,23 @@ public class ChessBoardPanel extends JPanel {
         }
     }
 
-    public void setDefaultDifficulty(int difficulty) {
-        DEFAULT_DIFFICULTY = difficulty;
+    public void haltMachineMoveThread() {
+        if (machineMoveThread.isAlive()) {
+            machineMoveThread.stopThread();
+            machineMoveThread = new MachineMoveThread();
+        }
     }
 
-    public void setDefaultHumanColor(model.chessboard.Color defaultHumanColor) {
-        DEFAULT_HUMANCOLOR = defaultHumanColor;
+    public void clearMoveParams() {
+        moveParams.clear();
     }
 
+    public void makeMachineMove() {
+        machineMoveThread = new MachineMoveThread();
+        machineMoveThread.start();
+    }
+
+    public void updateGameBoard(Board gameBoard) {
+        this.gameBoard = gameBoard;
+    }
 }

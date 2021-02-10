@@ -5,19 +5,12 @@ import model.chessboard.Board;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
-import java.util.Collections;
 
 /**
  * This panel represents a tile of a chessboard. It has a button hidden
  * underneath it, which will trigger a determination whether a move can be made.
  */
 public class ChessSlotPanel extends JPanel {
-
-    /**
-     * The model of the chess game.
-     */
-    private Board gameBoard;
-
 
     /**
      * The color of the pawn on this slot. {@code Color.NONE} if there is no
@@ -45,21 +38,20 @@ public class ChessSlotPanel extends JPanel {
     /**
      * Constructor for a chessboard-slot.
      *
-     * @param gameBoard The model of the chessboard.
      * @param col       The column on the chessboard which this tile represents.
      * @param row       The row on the chessboard which this tile represents.
+     * @param pawnColor The color of the pawn which stands on this slot
+     *                  initially.
      */
-    public ChessSlotPanel(Board gameBoard, int col, int row) {
+    public ChessSlotPanel(model.chessboard.Color pawnColor, int col, int row) {
         super();
 
-        if (gameBoard == null) {
-            throw new IllegalArgumentException("The board must not be null.");
-        } else if ((col < 1 || col > Board.SIZE) || (row < 1
+        if ((col < 1 || col > Board.SIZE) || (row < 1
                 || row > Board.SIZE)) {
             throw new IllegalArgumentException("The tiles position must be "
                     + "within the board.");
         } else {
-            this.gameBoard = gameBoard;
+            this.pawnColor = pawnColor;
             this.col = col;
             this.row = row;
             this.setBorder(new BevelBorder(BevelBorder.RAISED));
@@ -77,10 +69,11 @@ public class ChessSlotPanel extends JPanel {
         slotButton.setPreferredSize(this.getMaximumSize());
 
         slotButton.addActionListener(e -> {
-            GUI parentFrame = (GUI) getTopLevelAncestor();
             JButton source = (JButton) e.getSource();
+            ChessBoardPanel chessBoardPanel
+                    = (ChessBoardPanel) source.getParent().getParent();
 
-            parentFrame.attemptMove((ChessSlotPanel) source.getParent());
+            chessBoardPanel.attemptMove((ChessSlotPanel) source.getParent());
         });
         this.add(slotButton);
     }
@@ -111,7 +104,7 @@ public class ChessSlotPanel extends JPanel {
         int centerX = getWidth() / 2;
         int centerY = getHeight() / 2;
 
-        if (gameBoard.getSlot(col, row) == model.chessboard.Color.WHITE) {
+        if (pawnColor == model.chessboard.Color.WHITE) {
 
             // Draw outlines of the white pawns head and torso.
             g2.setColor(Color.BLACK);
@@ -129,8 +122,7 @@ public class ChessSlotPanel extends JPanel {
                             - (getHeight() / 3), getWidth() / 3,
                     getHeight() / 3);
 
-        } else if (gameBoard.getSlot(col, row)
-                == model.chessboard.Color.BLACK) {
+        } else if (pawnColor == model.chessboard.Color.BLACK) {
 
             // Draw black pawns head and torso
             g2.setColor(Color.BLACK);
@@ -159,15 +151,6 @@ public class ChessSlotPanel extends JPanel {
         return row;
     }
 
-    /**
-     * Updates the Game-Board. This is necessary for the determination of if
-     * there is pawn on this tile and more.
-     *
-     * @param gameBoard The model of a chessboard.
-     */
-    public void setGameBoard(Board gameBoard) {
-        this.gameBoard = gameBoard;
-    }
 
     /**
      * Enable or disable the slot button hidden beneath the slot.
@@ -194,8 +177,6 @@ public class ChessSlotPanel extends JPanel {
      * Sets the value for whether or not this slot contains a pawn. Sets the
      * color of the pawn on this slot.
      *
-     * @param hasPawn   {@code true} if this slot contains a pawn. {code false}
-     *                  otherwise.
      * @param pawnColor The color of the pawn on this field. {@code Color.NONE}
      *                  if there is no pawn on the slot.
      */
