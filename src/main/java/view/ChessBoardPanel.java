@@ -71,7 +71,7 @@ public class ChessBoardPanel extends JPanel {
 
                     // Update the components about the changes made by the
                     // move. The painting is handled by the event queue.
-                    frame.updateAndPaintAmountOfPawns();
+                    frame.updateAndPaintAmountOfPawns(gameBoard);
 
                     // Let the event queue handle the repaint.
                     SwingUtilities.invokeLater
@@ -289,7 +289,7 @@ public class ChessBoardPanel extends JPanel {
 
                                 // Update and repaint if the move was
                                 // successful.
-                                frame.updateAndPaintAmountOfPawns();
+                                frame.updateAndPaintAmountOfPawns(gameBoard);
                                 moveParams.get(0).setSelectedPawn(false);
                                 moveParams.clear();
                                 updateSlots();
@@ -319,7 +319,7 @@ public class ChessBoardPanel extends JPanel {
         GUI frame = ((GUI) this.getTopLevelAncestor());
 
         // Update and repaint the board.
-        frame.updateAndPaintAmountOfPawns();
+        frame.updateAndPaintAmountOfPawns(gameBoard);
         updateSlots();
         //TODO
         SwingUtilities.invokeLater(this::updateSlots);
