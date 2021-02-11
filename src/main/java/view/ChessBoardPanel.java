@@ -53,50 +53,40 @@ public class ChessBoardPanel extends JPanel {
             // Disable the humans possibility to move while the machine has not
             // yet  moved.
             setEnabledOnChessBoardPanels(false);
+            gameBoard = gameBoard.machineMove();
 
-            if (gameBoard.getNextPlayer() != Player.MACHINE) {
-
-                // Inform the player, that he has to move again.
-                JOptionPane.showMessageDialog(null,
-                        "Machine cannot move, please move again.");
+            if (gameBoard.isGameOver()) {
+                SwingUtilities
+                        .invokeLater(ChessBoardPanel.this::announceWinner);
             } else {
+                GUI frame = ((GUI) ChessBoardPanel.this.getTopLevelAncestor());
 
-                gameBoard = gameBoard.machineMove();
+                // Update the components about the changes made by the
+                // move. The painting is handled by the event queue.
+                frame.updateAndPaintAmountOfPawns(gameBoard);
 
-                if (gameBoard.isGameOver()) {
-                    announceWinner();
-                } else {
-                    GUI frame = ((GUI) ChessBoardPanel.this
-                            .getTopLevelAncestor());
+                // Let the event queue handle the repaint.
+                SwingUtilities.invokeLater(ChessBoardPanel.this::updateSlots);
 
-                    // Update the components about the changes made by the
-                    // move. The painting is handled by the event queue.
-                    frame.updateAndPaintAmountOfPawns(gameBoard);
+                // Move again if the human cannot move. This seems
+                // to be not functional due to a flaw in the model.
+                if (gameBoard.getNextPlayer() == Player.MACHINE) {
 
-                    // Let the event queue handle the repaint.
-                    SwingUtilities.invokeLater
-                            (ChessBoardPanel.this::updateSlots);
-
-                    // Move again if the human cannot move. This seems
-                    // to be not functional due to a flaw in the model.
-                    if (gameBoard.getNextPlayer() != Player.HUMAN) {
-
-                        // Re-enable the humans possibility to move then
-                        // stop the thread.
-                        setEnabledOnChessBoardPanels(true);
-                        stopThread();
-
-                        // Inform the player, then move again.
-                        JOptionPane.showMessageDialog(null,
-                                "You have to skip a move. "
-                                        + "Machine will move again.");
-                        MachineMoveThread thread = new MachineMoveThread();
-                        thread.start();
-                    }
-
-                    // Re-enable the humans possibility to move.
+                    // Re-enable the humans possibility to move then
+                    // stop the thread.
                     setEnabledOnChessBoardPanels(true);
+                    stopThread();
+
+                    // Inform the player, then move again.
+                    JOptionPane.showMessageDialog(null,
+                            "You have to skip a move. "
+                                    + "Machine will move again.");
+                    MachineMoveThread thread = new MachineMoveThread();
+                    thread.start();
                 }
+
+                // Re-enable the humans possibility to move.
+                setEnabledOnChessBoardPanels(true);
             }
         }
 
@@ -232,67 +222,71 @@ public class ChessBoardPanel extends JPanel {
             throw new IllegalArgumentException("No move can be attempted with"
                     + " this slot.");
         } else {
-            if (gameBoard.isGameOver()) {
-                announceWinner();
-            } else {
 
-                // If the human selects a friendly pawn highlight it and remember
-                // it internally.
-                if (moveParams.isEmpty()) {
-                    if (gameBoard.getSlot(newestMoveParam.getCol(),
-                            newestMoveParam.getRow())
-                            == gameBoard.getHumanColor()) {
+            // If the human selects a friendly pawn highlight it and remember
+            // it internally.
+            if (moveParams.isEmpty()) {
+                if (gameBoard.getSlot(newestMoveParam.getCol(),
+                        newestMoveParam.getRow())
+                        == gameBoard.getHumanColor()) {
 
-                        moveParams.add(newestMoveParam);
-                        newestMoveParam.setSelectedPawn(true);
-                        newestMoveParam.repaint();
-                    }
-                } else if (moveParams.size() == 1) {
+                    moveParams.add(newestMoveParam);
+                    newestMoveParam.setSelectedPawn(true);
+                    newestMoveParam.repaint();
+                }
+            } else if (moveParams.size() == 1) {
 
-                    // See if the player wants to change the pawn he has selected.
-                    if (gameBoard.getSlot(newestMoveParam.getCol(),
-                            newestMoveParam.getRow())
-                            == gameBoard.getHumanColor()) {
+                // See if the player wants to change the pawn he has selected.
+                if (gameBoard.getSlot(newestMoveParam.getCol(),
+                        newestMoveParam.getRow())
+                        == gameBoard.getHumanColor()) {
 
-                        moveParams.get(0).setSelectedPawn(false);
-                        moveParams.get(0).repaint();
-                        moveParams.clear();
+                    moveParams.get(0).setSelectedPawn(false);
+                    moveParams.get(0).repaint();
+                    moveParams.clear();
 
-                        moveParams.add(newestMoveParam);
-                        newestMoveParam.setSelectedPawn(true);
-                        newestMoveParam.repaint();
+                    moveParams.add(newestMoveParam);
+                    newestMoveParam.setSelectedPawn(true);
+                    newestMoveParam.repaint();
+                } else {
+
+                    // Determine the destination and source of the move.
+                    moveParams.add(newestMoveParam);
+                    ChessSlotPanel source = moveParams.get(0);
+                    ChessSlotPanel destination = moveParams.get(1);
+
+                    // Let the model attempt to perform a move.
+                    Board newBoard = gameBoard.move(source.getCol(),
+                            source.getRow(), destination.getCol(),
+                            destination.getRow());
+                    if (newBoard == null) {
+
+                        // Notify the user if his move was illegal.
+                        moveParams.remove(1);
+                        Toolkit.getDefaultToolkit().beep();
                     } else {
+                        GUI frame = ((GUI) this.getTopLevelAncestor());
 
-                        // Determine the destination and source of the move.
-                        moveParams.add(newestMoveParam);
-                        ChessSlotPanel source = moveParams.get(0);
-                        ChessSlotPanel destination = moveParams.get(1);
-
-                        // Let the model attempt to perform a move.
-                        Board newBoard = gameBoard.move(source.getCol(),
-                                source.getRow(), destination.getCol(),
-                                destination.getRow());
-                        if (newBoard == null) {
-
-                            // Notify the user if his move was illegal.
-                            moveParams.remove(1);
-                            Toolkit.getDefaultToolkit().beep();
+                        // Remember the last move.
+                        frame.pushOnUndoStack(gameBoard.clone());
+                        gameBoard = newBoard;
+                        if (gameBoard.isGameOver()) {
+                            announceWinner();
                         } else {
-                            GUI frame = ((GUI) this.getTopLevelAncestor());
 
-                            // Remember the last move.
-                            frame.pushOnUndoStack(gameBoard.clone());
-                            gameBoard = newBoard;
-                            if (gameBoard.isGameOver()) {
-                                announceWinner();
+                            // Update and repaint if the move was
+                            // successful.
+                            frame.updateAndPaintAmountOfPawns(gameBoard);
+                            moveParams.get(0).setSelectedPawn(false);
+                            moveParams.clear();
+                            updateSlots();
+
+                            if (gameBoard.getNextPlayer() == Player.HUMAN) {
+                                JOptionPane.showMessageDialog
+                                        (null, "The "
+                                        + "machine has to skip a turn, please"
+                                        + " move again.");
                             } else {
-
-                                // Update and repaint if the move was
-                                // successful.
-                                frame.updateAndPaintAmountOfPawns(gameBoard);
-                                moveParams.get(0).setSelectedPawn(false);
-                                moveParams.clear();
-                                updateSlots();
 
                                 // Let the machine perform its move.
                                 MachineMoveThread machineMoveThread
@@ -301,17 +295,16 @@ public class ChessBoardPanel extends JPanel {
                             }
                         }
                     }
-                } else {
-                    throw new IllegalStateException("The move params are in an "
-                            + "illegal state!");
                 }
+            } else {
+                throw new IllegalStateException("The move params are in an "
+                        + "illegal state!");
             }
         }
-
     }
 
     /**
-     * Displays the winner to the user. Restricts all further movements.
+     * Informs the player about the winner of the game.
      */
     private void announceWinner() {
         assert (gameBoard.isGameOver());
@@ -321,8 +314,6 @@ public class ChessBoardPanel extends JPanel {
         // Update and repaint the board.
         frame.updateAndPaintAmountOfPawns(gameBoard);
         updateSlots();
-        //TODO
-        SwingUtilities.invokeLater(this::updateSlots);
 
         if (gameBoard.getWinner() == Player.HUMAN) {
             JOptionPane.showMessageDialog(null,
@@ -350,7 +341,7 @@ public class ChessBoardPanel extends JPanel {
      * @param enabled Enables the humans possibility to move on the board if
      *                {@code true}. Disables it if {@code false}.
      */
-    private void setEnabledOnChessBoardPanels(boolean enabled) {
+    void setEnabledOnChessBoardPanels(boolean enabled) {
         for (int row = 0; row < Board.SIZE; row++) {
             for (int col = 0; col < Board.SIZE; col++) {
                 slots[row][col].setSlotButtonEnabled(enabled);
@@ -381,6 +372,9 @@ public class ChessBoardPanel extends JPanel {
         }
     }
 
+    /**
+     * Stops the currently running thread which calculates the machine move.
+     */
     public void haltMachineMoveThread() {
         if (machineMoveThread.isAlive()) {
             machineMoveThread.stopThread();
@@ -388,15 +382,33 @@ public class ChessBoardPanel extends JPanel {
         }
     }
 
+    /**
+     * Removes all currently saved movement arguments. Ergo all information
+     * about the source and/or destination of a move given by the user.
+     */
     public void clearMoveParams() {
         moveParams.clear();
     }
 
+    /**
+     * Creates a thread which will calculate and attempt to execute a machine
+     * move.
+     */
     public void makeMachineMove() {
-        machineMoveThread = new MachineMoveThread();
-        machineMoveThread.start();
+        if(gameBoard.isGameOver()) {
+            throw new IllegalStateException("This game is over.");
+        } else {
+            machineMoveThread = new MachineMoveThread();
+            machineMoveThread.start();
+        }
     }
 
+    /**
+     * Updates the current model of the game state in this object.
+     *
+     * @param gameBoard The new model of the chess-game which this object is
+     *                  to be informed about.
+     */
     public void updateGameBoard(Board gameBoard) {
         this.gameBoard = gameBoard;
     }

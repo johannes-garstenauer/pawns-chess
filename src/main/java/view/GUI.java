@@ -46,7 +46,7 @@ public class GUI extends JFrame {
      */
     private ChessBoardPanel chessBoardPanel;
 
-    private ControlPanel controlPanel;
+    private final ControlPanel controlPanel;
 
 
     /**
@@ -157,6 +157,11 @@ public class GUI extends JFrame {
         });
     }
 
+    /**
+     * An inner class to represent the panel in the south of the window which
+     * contains all necessary elements and buttons to control the games
+     * functions.
+     */
     private class ControlPanel extends JPanel {
 
         /**
@@ -353,8 +358,7 @@ public class GUI extends JFrame {
             // Reset the classes attributes.
             chessBoardPanel.clearMoveParams();
             undoStack.clear();
-            //TODO
-            //setEnabledOnChessBoardPanels(true);
+            chessBoardPanel.setEnabledOnChessBoardPanels(true);
             whitePawnsNumber.setText(String.valueOf(Board.SIZE));
             blackPawnsNumber.setText(String.valueOf(Board.SIZE));
             gameBoard = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
@@ -367,24 +371,39 @@ public class GUI extends JFrame {
             }
         }
 
+        /**
+         * Assigns a text to the number in the left bottom corner which
+         * represents the amount of white pawns. The label will also be
+         * repainted by the event queue.
+         *
+         * @param text The text which is set as the labels text. This should
+         *             be the string of an integer number.
+         */
         private void setWhitePawnsNumberText(String text) {
             whitePawnsNumber.setText(text);
             SwingUtilities.invokeLater(whitePawnsNumber::repaint);
         }
 
+        /**
+         * Assigns a text to the number in the right bottom corner which
+         * represents the amount of black pawns. The label will also be
+         * repainted by the event queue.
+         *
+         * @param text The text which is set as the labels text. This should
+         *             be the string of an integer number.
+         */
         private void setBlackPawnsNumberText(String text) {
             blackPawnsNumber.setText(text);
             SwingUtilities.invokeLater(blackPawnsNumber::repaint);
         }
-
-        private void pushOnUndoStack(Board board) {
-            undoStack.push(board);
-        }
     }
 
-    //TODO javadoc
     /**
      * Update and repaint the amount of pawns in the control panel.
+     * Also updates the {@code gameBoard} in order to read the current amount
+     * of pawns for the players.
+     *
+     * @param gameBoard The current game-board.
      */
     void updateAndPaintAmountOfPawns(Board gameBoard) {
         this.gameBoard = gameBoard;
@@ -407,7 +426,12 @@ public class GUI extends JFrame {
         SwingUtilities.invokeLater(GUI::new);
     }
 
+    /**
+     * Pushes a board on the undo-stack.
+     *
+     * @param board The board to be pushed on the undo-stack.
+     */
     public void pushOnUndoStack(Board board) {
-        controlPanel.pushOnUndoStack(board);
+        controlPanel.undoStack.push(board);
     }
 }

@@ -16,7 +16,7 @@ public class ChessSlotPanel extends JPanel {
      * The color of the pawn on this slot. {@code Color.NONE} if there is no
      * pawn.
      */
-    model.chessboard.Color pawnColor = model.chessboard.Color.NONE;
+    model.chessboard.Color pawnColor;
 
     /**
      * The column and row on the chessboard which this tile represents.
@@ -184,10 +184,22 @@ public class ChessSlotPanel extends JPanel {
         this.pawnColor = pawnColor;
     }
 
+    /**
+     * Returns the color of the pawn on this slot. If there is no pawn on
+     * this slot the color will be {@code model.chessboard.Color.NONE}.
+     *
+     * @return The color of the pawn on this slot.
+     */
     public model.chessboard.Color getPawnColor() {
         return pawnColor;
     }
 
+    /**
+     * Returns whether or not this slot has been selected and therefore
+     * highlighted.
+     *
+     * @return {@code true} if this slot was selected. {@code false} otherwise.
+     */
     public boolean isSelectedPawn() {
         return isSelectedPawn;
     }
