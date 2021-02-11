@@ -219,7 +219,6 @@ public class GUI extends JFrame {
                 gameBoard = undoStack.pop();
                 chessBoardPanel.updateGameBoard(gameBoard);
                 chessBoardPanel.clearMoveParams();
-                //TODO invokeLater?
                 chessBoardPanel.updateSlots();
                 updateAndPaintAmountOfPawns();
             } else {
@@ -346,7 +345,6 @@ public class GUI extends JFrame {
      * Update and repaint the amount of pawns in the control panel.
      */
     void updateAndPaintAmountOfPawns() {
-
         if (DEFAULT_HUMANCOLOR == Color.WHITE) {
             whitePawnsNumber.setText
                     (String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));

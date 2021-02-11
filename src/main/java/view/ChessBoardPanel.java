@@ -1,7 +1,6 @@
 package view;
 
 import model.chessboard.Board;
-import model.exceptions.IllegalMoveException;
 import model.player.Player;
 
 import javax.swing.*;
@@ -61,47 +60,42 @@ public class ChessBoardPanel extends JPanel {
                 JOptionPane.showMessageDialog(null,
                         "Machine cannot move, please move again.");
             } else {
-                try {
-                    gameBoard = gameBoard.machineMove();
-                } catch (IllegalMoveException illegalMoveException) {
-                    if (gameBoard.isGameOver()) {
-                        announceWinner();
-                    }
-                } finally {
-                    if (gameBoard.isGameOver()) {
-                        announceWinner();
-                    } else {
-                        GUI frame = ((GUI) ChessBoardPanel.this
-                                .getTopLevelAncestor());
 
-                        // Update the components about the changes made by the
-                        // move.
-                        frame.updateAndPaintAmountOfPawns();
+                gameBoard = gameBoard.machineMove();
 
-                        // Let the event queue handle the repaint.
-                        SwingUtilities.invokeLater
-                                (ChessBoardPanel.this::updateSlots);
+                if (gameBoard.isGameOver()) {
+                    announceWinner();
+                } else {
+                    GUI frame = ((GUI) ChessBoardPanel.this
+                            .getTopLevelAncestor());
 
-                        // Move again if the human cannot move. This seems
-                        // to be not functional due to a flaw in the model.
-                        if (gameBoard.getNextPlayer() != Player.HUMAN) {
+                    // Update the components about the changes made by the
+                    // move. The painting is handled by the event queue.
+                    frame.updateAndPaintAmountOfPawns();
 
-                            // Re-enable the humans possibility to move then
-                            // stop the thread.
-                            setEnabledOnChessBoardPanels(true);
-                            stopThread();
+                    // Let the event queue handle the repaint.
+                    SwingUtilities.invokeLater
+                            (ChessBoardPanel.this::updateSlots);
 
-                            // Inform the player, then move again.
-                            JOptionPane.showMessageDialog(null,
-                                    "You have to skip a move. "
-                                            + "Machine will move again.");
-                            MachineMoveThread thread = new MachineMoveThread();
-                            thread.start();
-                        }
+                    // Move again if the human cannot move. This seems
+                    // to be not functional due to a flaw in the model.
+                    if (gameBoard.getNextPlayer() != Player.HUMAN) {
 
-                        // Re-enable the humans possibility to move.
+                        // Re-enable the humans possibility to move then
+                        // stop the thread.
                         setEnabledOnChessBoardPanels(true);
+                        stopThread();
+
+                        // Inform the player, then move again.
+                        JOptionPane.showMessageDialog(null,
+                                "You have to skip a move. "
+                                        + "Machine will move again.");
+                        MachineMoveThread thread = new MachineMoveThread();
+                        thread.start();
                     }
+
+                    // Re-enable the humans possibility to move.
+                    setEnabledOnChessBoardPanels(true);
                 }
             }
         }
@@ -274,46 +268,36 @@ public class ChessBoardPanel extends JPanel {
                         ChessSlotPanel source = moveParams.get(0);
                         ChessSlotPanel destination = moveParams.get(1);
 
-                        Board newBoard = null;
-                        try {
-
-                            // Let the model attempt to perform a move.
-                            newBoard = gameBoard.move(source.getCol(),
-                                    source.getRow(), destination.getCol(),
-                                    destination.getRow());
-                        } catch (IllegalMoveException illegalMoveException) {
+                        // Let the model attempt to perform a move.
+                        Board newBoard = gameBoard.move(source.getCol(),
+                                source.getRow(), destination.getCol(),
+                                destination.getRow());
+                        if (newBoard == null) {
 
                             // Notify the user if his move was illegal.
+                            moveParams.remove(1);
                             Toolkit.getDefaultToolkit().beep();
-                        } finally {
-                            if (newBoard == null) {
+                        } else {
+                            GUI frame = ((GUI) this.getTopLevelAncestor());
 
-                                // Notify the user if his move was illegal.
-                                moveParams.remove(1);
-                                Toolkit.getDefaultToolkit().beep();
+                            // Remember the last move.
+                            frame.pushOnUndoStack(gameBoard.clone());
+                            gameBoard = newBoard;
+                            if (gameBoard.isGameOver()) {
+                                announceWinner();
                             } else {
-                                GUI frame = ((GUI) this.getTopLevelAncestor());
 
-                                // Remember the last move.
-                                frame.pushOnUndoStack(gameBoard.clone());
-                                gameBoard = newBoard;
-                                if (gameBoard.isGameOver()) {
-                                    announceWinner();
-                                } else {
+                                // Update and repaint if the move was
+                                // successful.
+                                frame.updateAndPaintAmountOfPawns();
+                                moveParams.get(0).setSelectedPawn(false);
+                                moveParams.clear();
+                                updateSlots();
 
-                                    // Update and repaint if the move was
-                                    // successful.
-                                    frame.updateAndPaintAmountOfPawns();
-                                    moveParams.get(0).setSelectedPawn(false);
-                                    moveParams.clear();
-                                    //TODO hier invokeLater?
-                                    updateSlots();
-
-                                    // Let the machine perform its move.
-                                    MachineMoveThread machineMoveThread
-                                            = new MachineMoveThread();
-                                    machineMoveThread.start();
-                                }
+                                // Let the machine perform its move.
+                                MachineMoveThread machineMoveThread
+                                        = new MachineMoveThread();
+                                machineMoveThread.start();
                             }
                         }
                     }
@@ -323,6 +307,7 @@ public class ChessBoardPanel extends JPanel {
                 }
             }
         }
+
     }
 
     /**
@@ -391,6 +376,7 @@ public class ChessBoardPanel extends JPanel {
                     slots[row][col].setSelectedPawn(false);
                     slots[row][col].repaint();
                 }
+
             }
         }
     }
