@@ -5,10 +5,27 @@ import model.chessboard.ChessBoard;
 import model.chessboard.Color;
 import model.player.Player;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+
+
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+
+
 import java.util.Objects;
 import java.util.Stack;
 
@@ -28,18 +45,18 @@ public class GUI extends JFrame {
     /**
      * This is the default difficulty level of the machine opponent.
      */
-    private static int DEFAULT_DIFFICULTY = 3;
+    private static int defaultDifficulty = 3;
 
     /**
      * This is the default color of the human player.
      */
-    private static Color DEFAULT_HUMANCOLOR = Color.WHITE;
+    private static Color defaultHumanColor = Color.WHITE;
 
     /**
      * This is the Board on which the current game is being played.
      */
     private Board gameBoard
-            = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
+            = new ChessBoard(defaultDifficulty, defaultHumanColor);
 
     /**
      * This is the Panel on which the chessboard is being displayed.
@@ -80,20 +97,22 @@ public class GUI extends JFrame {
         });
     }
 
+    /**
+     * Initiate the chessboard on which the actual game is displayed an
+     * played from.
+     */
     private void initChessBoardPanel() {
 
-        // This wrapper employs the flow layout, so that the size of the
+        // This wrapper employs the flow-layout, so that the size of the
         // chessboard within can be adapted when the frame is being resized.
         JPanel chessBoardPanelFlowWrapper = new JPanel(new FlowLayout());
 
         // This wrapper should fill out the entire frame but leave some space
         // for the control panels.
-        chessBoardPanelFlowWrapper.setPreferredSize
-                (new Dimension(FRAME_SIZE, (int) (FRAME_SIZE * 0.95)));
-
+        chessBoardPanelFlowWrapper.setPreferredSize(new Dimension(FRAME_SIZE,
+                (int) (FRAME_SIZE * 0.95)));
         this.chessBoardPanel
                 = new ChessBoardPanel(gameBoard, chessBoardPanelFlowWrapper);
-
         chessBoardPanelFlowWrapper.add(chessBoardPanel);
         this.add(chessBoardPanelFlowWrapper, BorderLayout.CENTER);
         chessBoardPanel.updateSlots();
@@ -181,7 +200,7 @@ public class GUI extends JFrame {
         /**
          * Initializes the control panel and the buttons contained within it.
          */
-        public ControlPanel() {
+        ControlPanel() {
 
             /*
             Create a wrapper around the control panel in order to place the
@@ -247,15 +266,15 @@ public class GUI extends JFrame {
             controlPanel.add(new JLabel("Levels:"));
             String[] levels = {"1", "2", "3", "4"};
             JComboBox<String> levelMenu = new JComboBox<>(levels);
-            levelMenu.setSelectedIndex(DEFAULT_DIFFICULTY - 1);
+            levelMenu.setSelectedIndex(defaultDifficulty - 1);
             gameBoard.setLevel(Integer.parseInt((String) Objects
                     .requireNonNull(levelMenu.getSelectedItem())));
             levelMenu.addActionListener(e -> {
                 JComboBox selectedBox = (JComboBox) e.getSource();
                 int selectedLevel
-                        = Integer.parseInt((String) Objects.requireNonNull
-                        (selectedBox.getSelectedItem()));
-                DEFAULT_DIFFICULTY = selectedLevel;
+                        = Integer.parseInt((String) Objects
+                        .requireNonNull(selectedBox.getSelectedItem()));
+                defaultDifficulty = selectedLevel;
                 gameBoard.setLevel(selectedLevel);
             });
             levelMenu.setToolTipText("Set the machine opponents difficulty "
@@ -293,7 +312,8 @@ public class GUI extends JFrame {
                 JFrame frame = (JFrame) source.getTopLevelAncestor();
                 frame.dispose();
             });
-            quitButton.setToolTipText("Quit this program and close the window.");
+            quitButton.setToolTipText("Quit this program and close the "
+                    + "window.");
             controlPanel.add(quitButton);
         }
 
@@ -309,7 +329,7 @@ public class GUI extends JFrame {
             JButton switchButton = new JButton("Switch");
             switchButton.setMnemonic('S');
             switchButton.addActionListener(e -> {
-                DEFAULT_HUMANCOLOR = Color.getOppositeColor(DEFAULT_HUMANCOLOR);
+                defaultHumanColor = Color.getOppositeColor(defaultHumanColor);
                 constructNewBoard();
             });
             switchButton.setToolTipText("Start a new game with switched "
@@ -362,7 +382,7 @@ public class GUI extends JFrame {
             chessBoardPanel.setEnabledOnChessBoardPanels(true);
             whitePawnsNumber.setText(String.valueOf(Board.SIZE));
             blackPawnsNumber.setText(String.valueOf(Board.SIZE));
-            gameBoard = new ChessBoard(DEFAULT_DIFFICULTY, DEFAULT_HUMANCOLOR);
+            gameBoard = new ChessBoard(defaultDifficulty, defaultHumanColor);
             chessBoardPanel.updateGameBoard(gameBoard);
             chessBoardPanel.updateSlots();
 
@@ -403,20 +423,20 @@ public class GUI extends JFrame {
      * Update and repaint the amount of pawns in the control panel.
      */
     void updateAndPaintAmountOfPawns() {
-        if(gameBoard == null) {
+        if (gameBoard == null) {
             throw new IllegalArgumentException("The board must represent a "
                     + "legal game state.");
         } else {
-            if (DEFAULT_HUMANCOLOR == Color.WHITE) {
-                controlPanel.setWhitePawnsNumberText(String.valueOf
-                        (gameBoard.getNumberOfTiles(Player.HUMAN)));
-                controlPanel.setBlackPawnsNumberText(String.valueOf
-                        (gameBoard.getNumberOfTiles(Player.MACHINE)));
+            if (defaultHumanColor == Color.WHITE) {
+                controlPanel.setWhitePawnsNumberText(String.valueOf(gameBoard
+                        .getNumberOfTiles(Player.HUMAN)));
+                controlPanel.setBlackPawnsNumberText(String.valueOf(gameBoard
+                        .getNumberOfTiles(Player.MACHINE)));
             } else {
-                controlPanel.setWhitePawnsNumberText(String.valueOf
-                        (gameBoard.getNumberOfTiles(Player.MACHINE)));
-                controlPanel.setBlackPawnsNumberText(String.valueOf
-                        (gameBoard.getNumberOfTiles(Player.HUMAN)));
+                controlPanel.setWhitePawnsNumberText(String.valueOf(gameBoard
+                        .getNumberOfTiles(Player.MACHINE)));
+                controlPanel.setBlackPawnsNumberText(String.valueOf(gameBoard
+                        .getNumberOfTiles(Player.HUMAN)));
             }
         }
     }
@@ -446,7 +466,7 @@ public class GUI extends JFrame {
      * @param board The board to be pushed on the undo-stack.
      */
     public void pushOnUndoStack(Board board) {
-        if(gameBoard == null) {
+        if (gameBoard == null) {
             throw new IllegalArgumentException("The board must represent a "
                     + "legal game state.");
         } else {

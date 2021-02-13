@@ -2,9 +2,14 @@ package view;
 
 import model.chessboard.Board;
 
-import javax.swing.*;
+
 import javax.swing.border.BevelBorder;
-import java.awt.*;
+import javax.swing.JPanel;
+import javax.swing.JButton;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Color;
 
 /**
  * This panel represents a tile of a chessboard. It has a button hidden
@@ -16,7 +21,7 @@ public class ChessSlotPanel extends JPanel {
      * The color of the pawn on this slot. {@code Color.NONE} if there is no
      * pawn.
      */
-    model.chessboard.Color pawnColor;
+    private model.chessboard.Color pawnColor;
 
     /**
      * The column and row on the chessboard which this tile represents.

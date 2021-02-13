@@ -1,12 +1,18 @@
 package view;
 
 import model.chessboard.Board;
-import model.exceptions.IllegalMoveException;
 import model.player.Player;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.JOptionPane;
+import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+
+import java.awt.GridLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +23,12 @@ import java.util.List;
 public class ChessBoardPanel extends JPanel {
 
     /**
-     * Collects all the panels contained within the chessboard.
+     * Collects all the panels contained within the chessboard. The slots are
+     * ordered in a 2d manner in the same way as they would on an actual
+     * chessboard.
      */
-    ChessSlotPanel[][] slots = new ChessSlotPanel[Board.SIZE][Board.SIZE];
+    private final ChessSlotPanel[][] slots =
+            new ChessSlotPanel[Board.SIZE][Board.SIZE];
 
     /**
      * This is the Board on which the current game is being played.
@@ -115,7 +124,8 @@ public class ChessBoardPanel extends JPanel {
      */
     public ChessBoardPanel(Board gameBoard, JPanel parent) {
         this.gameBoard = gameBoard;
-        this.setLayout(new GridLayout(Board.SIZE + 2, Board.SIZE + 2));
+        this.setLayout(new GridLayout(Board.SIZE + 2,
+                Board.SIZE + 2));
 
         // Fill the chessboard grid with panels. These panels contain the
         // functionality of the moves and take care of the graphics aspect.
@@ -130,7 +140,8 @@ public class ChessBoardPanel extends JPanel {
                     if (((col == 0 && row == 0)
                             || (col == Board.SIZE + 1 && row == 0)
                             || (row == Board.SIZE + 1 && col == 0)
-                            || (col == Board.SIZE + 1 && row == Board.SIZE + 1))) {
+                            || (col == Board.SIZE + 1 && row
+                            == Board.SIZE + 1))) {
 
                         // Add empty Label into corners.
                         this.add(new JLabel());
@@ -285,10 +296,9 @@ public class ChessBoardPanel extends JPanel {
                             updateSlots();
 
                             if (gameBoard.getNextPlayer() == Player.HUMAN) {
-                                JOptionPane.showMessageDialog
-                                        (null, "The "
-                                                + "machine has to skip a turn, "
-                                                + "please move again.");
+                                JOptionPane.showMessageDialog(null,
+                                        "The machine has to skip a "
+                                                + "turn, please move again.");
                             } else {
 
                                 // Let the machine perform its move.
@@ -363,12 +373,17 @@ public class ChessBoardPanel extends JPanel {
         int s = Board.SIZE;
         for (int row = 8; row > 0; row--) {
             for (int col = 1; col <= Board.SIZE; col++) {
+
+                // Paint all slots with pawns.
                 if (gameBoard.getSlot(col, row)
                         != slots[s - row][col - 1].getPawnColor()) {
                     slots[s - row][col - 1].setPawnColor(gameBoard.getSlot(col,
                             row));
                     slots[s - row][col - 1].repaint();
-                } if (slots[s - row][col - 1].isSelectedPawn()) {
+                }
+
+                // Unhighlight all highlighted slots.
+                if (slots[s - row][col - 1].isSelectedPawn()) {
                     slots[s - row][col - 1].setSelectedPawn(false);
                     slots[s - row][col - 1].repaint();
                 }
