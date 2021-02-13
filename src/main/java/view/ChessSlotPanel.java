@@ -45,11 +45,13 @@ public class ChessSlotPanel extends JPanel {
      */
     public ChessSlotPanel(model.chessboard.Color pawnColor, int col, int row) {
         super();
-
         if ((col < 1 || col > Board.SIZE) || (row < 1
                 || row > Board.SIZE)) {
             throw new IllegalArgumentException("The tiles position must be "
                     + "within the board.");
+        } else if (pawnColor == null) {
+            throw new IllegalArgumentException("The pawns color on this slot "
+                    + "must be a legal color.");
         } else {
             this.pawnColor = pawnColor;
             this.col = col;
@@ -159,7 +161,12 @@ public class ChessSlotPanel extends JPanel {
      *                otherwise.
      */
     public void setSlotButtonEnabled(boolean enabled) {
-        slotButton.setEnabled(enabled);
+        if (slotButton == null) {
+            throw new IllegalStateException("There must be button to be "
+                    + "disabled");
+        } else {
+            slotButton.setEnabled(enabled);
+        }
     }
 
     /**
@@ -181,7 +188,12 @@ public class ChessSlotPanel extends JPanel {
      *                  if there is no pawn on the slot.
      */
     public void setPawnColor(model.chessboard.Color pawnColor) {
-        this.pawnColor = pawnColor;
+        if (pawnColor == null) {
+            throw new IllegalArgumentException("The pawns color must not be "
+                    + "null");
+        } else {
+            this.pawnColor = pawnColor;
+        }
     }
 
     /**

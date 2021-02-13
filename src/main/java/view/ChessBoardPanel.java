@@ -1,6 +1,7 @@
 package view;
 
 import model.chessboard.Board;
+import model.exceptions.IllegalMoveException;
 import model.player.Player;
 
 import javax.swing.*;
@@ -63,7 +64,8 @@ public class ChessBoardPanel extends JPanel {
 
                 // Update the components about the changes made by the
                 // move. The painting is handled by the event queue.
-                frame.updateAndPaintAmountOfPawns(gameBoard);
+                frame.updateGameBoard(gameBoard);
+                frame.updateAndPaintAmountOfPawns();
 
                 // Let the event queue handle the repaint.
                 SwingUtilities.invokeLater(ChessBoardPanel.this::updateSlots);
@@ -72,17 +74,15 @@ public class ChessBoardPanel extends JPanel {
                 // to be not functional due to a flaw in the model.
                 if (gameBoard.getNextPlayer() == Player.MACHINE) {
 
-                    // Re-enable the humans possibility to move then
-                    // stop the thread.
-                    setEnabledOnChessBoardPanels(true);
-                    stopThread();
+                    // Stop the thread
+                    haltMachineMoveThread();
 
                     // Inform the player, then move again.
                     JOptionPane.showMessageDialog(null,
                             "You have to skip a move. "
                                     + "Machine will move again.");
-                    MachineMoveThread thread = new MachineMoveThread();
-                    thread.start();
+                    MachineMoveThread extraMove = new MachineMoveThread();
+                    extraMove.start();
                 }
 
                 // Re-enable the humans possibility to move.
@@ -216,11 +216,12 @@ public class ChessBoardPanel extends JPanel {
      * @param newestMoveParam The slot on the chessboard that was selected by
      *                        the player.
      */
-    //TODO auslagern
     public void attemptMove(ChessSlotPanel newestMoveParam) {
         if (newestMoveParam == null) {
             throw new IllegalArgumentException("No move can be attempted with"
                     + " this slot.");
+        } else if (gameBoard.isGameOver()) {
+            announceWinner();
         } else {
 
             // If the human selects a friendly pawn highlight it and remember
@@ -270,13 +271,15 @@ public class ChessBoardPanel extends JPanel {
                         // Remember the last move.
                         frame.pushOnUndoStack(gameBoard.clone());
                         gameBoard = newBoard;
+
                         if (gameBoard.isGameOver()) {
                             announceWinner();
                         } else {
 
                             // Update and repaint if the move was
                             // successful.
-                            frame.updateAndPaintAmountOfPawns(gameBoard);
+                            frame.updateGameBoard(gameBoard);
+                            frame.updateAndPaintAmountOfPawns();
                             moveParams.get(0).setSelectedPawn(false);
                             moveParams.clear();
                             updateSlots();
@@ -284,8 +287,8 @@ public class ChessBoardPanel extends JPanel {
                             if (gameBoard.getNextPlayer() == Player.HUMAN) {
                                 JOptionPane.showMessageDialog
                                         (null, "The "
-                                        + "machine has to skip a turn, please"
-                                        + " move again.");
+                                                + "machine has to skip a turn, "
+                                                + "please move again.");
                             } else {
 
                                 // Let the machine perform its move.
@@ -312,7 +315,8 @@ public class ChessBoardPanel extends JPanel {
         GUI frame = ((GUI) this.getTopLevelAncestor());
 
         // Update and repaint the board.
-        frame.updateAndPaintAmountOfPawns(gameBoard);
+        frame.updateGameBoard(gameBoard);
+        frame.updateAndPaintAmountOfPawns();
         updateSlots();
 
         if (gameBoard.getWinner() == Player.HUMAN) {
@@ -395,7 +399,7 @@ public class ChessBoardPanel extends JPanel {
      * move.
      */
     public void makeMachineMove() {
-        if(gameBoard.isGameOver()) {
+        if (gameBoard.isGameOver()) {
             throw new IllegalStateException("This game is over.");
         } else {
             machineMoveThread = new MachineMoveThread();
@@ -410,6 +414,11 @@ public class ChessBoardPanel extends JPanel {
      *                  to be informed about.
      */
     public void updateGameBoard(Board gameBoard) {
-        this.gameBoard = gameBoard;
+        if (gameBoard == null) {
+            throw new IllegalArgumentException("The game-gard must represent"
+                    + " a playable game state.");
+        } else {
+            this.gameBoard = gameBoard;
+        }
     }
 }

@@ -226,7 +226,7 @@ public class GUI extends JFrame {
                     chessBoardPanel.updateGameBoard(gameBoard);
                     chessBoardPanel.clearMoveParams();
                     chessBoardPanel.updateSlots();
-                    updateAndPaintAmountOfPawns(gameBoard);
+                    updateAndPaintAmountOfPawns();
                 } else {
                     Toolkit.getDefaultToolkit().beep();
                 }
@@ -400,20 +400,33 @@ public class GUI extends JFrame {
 
     /**
      * Update and repaint the amount of pawns in the control panel.
-     * Also updates the {@code gameBoard} in order to read the current amount
-     * of pawns for the players.
+     */
+    void updateAndPaintAmountOfPawns() {
+        if(gameBoard == null) {
+            throw new IllegalArgumentException("The board must represent a "
+                    + "legal game state.");
+        } else {
+            if (DEFAULT_HUMANCOLOR == Color.WHITE) {
+                controlPanel.setWhitePawnsNumberText(String.valueOf
+                        (gameBoard.getNumberOfTiles(Player.HUMAN)));
+                controlPanel.setBlackPawnsNumberText(String.valueOf
+                        (gameBoard.getNumberOfTiles(Player.MACHINE)));
+            } else {
+                controlPanel.setWhitePawnsNumberText(String.valueOf
+                        (gameBoard.getNumberOfTiles(Player.MACHINE)));
+                controlPanel.setBlackPawnsNumberText(String.valueOf
+                        (gameBoard.getNumberOfTiles(Player.HUMAN)));
+            }
+        }
+    }
+
+    /**
+     * Updates the model of the current game-state.
      *
      * @param gameBoard The current game-board.
      */
-    void updateAndPaintAmountOfPawns(Board gameBoard) {
+    public void updateGameBoard(Board gameBoard) {
         this.gameBoard = gameBoard;
-        if (DEFAULT_HUMANCOLOR == Color.WHITE) {
-            controlPanel.setWhitePawnsNumberText(String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));
-            controlPanel.setBlackPawnsNumberText(String.valueOf(gameBoard.getNumberOfTiles(Player.MACHINE)));
-        } else {
-            controlPanel.setWhitePawnsNumberText(String.valueOf(gameBoard.getNumberOfTiles(Player.MACHINE)));
-            controlPanel.setBlackPawnsNumberText(String.valueOf(gameBoard.getNumberOfTiles(Player.HUMAN)));
-        }
     }
 
     /**
@@ -432,6 +445,11 @@ public class GUI extends JFrame {
      * @param board The board to be pushed on the undo-stack.
      */
     public void pushOnUndoStack(Board board) {
-        controlPanel.undoStack.push(board);
+        if(gameBoard == null) {
+            throw new IllegalArgumentException("The board must represent a "
+                    + "legal game state.");
+        } else {
+            controlPanel.undoStack.push(board);
+        }
     }
 }

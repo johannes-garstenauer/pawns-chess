@@ -253,8 +253,6 @@ public class ChessBoard implements Board, Cloneable {
         } else if (isGameOver()) {
             throw new IllegalMoveException("No more moves can be made as this"
                     + " game is already finished.");
-        } else if (hasToSuspend(Player.HUMAN)) {
-            throw new IllegalMoveException("You must miss a turn.");
         } else if (colFrom < 1 || colFrom > SIZE || rowFrom < 1
                 || rowFrom > SIZE || colTo < 1 || colTo > SIZE || rowTo < 1
                 || rowTo > SIZE) {
@@ -277,7 +275,9 @@ public class ChessBoard implements Board, Cloneable {
             if (isLegalMove(pawnToBeMoved, colTo, rowTo)) {
                 newBoard.makeMove(pawnToBeMoved, colTo, rowTo);
 
-                if (!hasToSuspend(Player.HUMAN)) {
+                if (newBoard.hasToSuspend(Player.MACHINE)) {
+                    newBoard.nextPlayer = Player.HUMAN;
+                } else {
                     newBoard.nextPlayer = Player.MACHINE;
                 }
                 return newBoard;
@@ -754,11 +754,15 @@ public class ChessBoard implements Board, Cloneable {
             newBoard.constructTree(root, Player.MACHINE.getLevel());
             newBoard.assignValues(root);
 
-            //TODO
-            //System.out.println(root.getChildWithHighestValue().getValue());
-
             //TODO wird nextPlayer schon durch possibleMoves richtig gesetzt?
-            return root.getMaxChild().getContent();
+            ChessBoard bestMove = root.getMaxChild().getContent();
+
+            if (bestMove.hasToSuspend(Player.HUMAN)) {
+                bestMove.nextPlayer = Player.MACHINE;
+            } else {
+                bestMove.nextPlayer = Player.HUMAN;
+            }
+            return  bestMove;
         }
     }
 
@@ -851,7 +855,6 @@ public class ChessBoard implements Board, Cloneable {
 
         // Assign parameter player as next player in order to accurately
         // determine the legality of possible moves.
-        //TODO doch irgendwie unschön
         Player actualNextPlayer = nextPlayer;
         nextPlayer = player;
 
@@ -894,8 +897,6 @@ public class ChessBoard implements Board, Cloneable {
 
                         ChessBoard boardClone = (ChessBoard) this.clone();
 
-                        //TODO getPawn verletzung klassengeheimnis??
-                        // aber wiesonst
                         boardClone.makeMove(boardClone.getPawn(pawn.getColumn(),
                                 pawn.getRow()), colTo, rowTo);
 
