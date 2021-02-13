@@ -145,7 +145,7 @@ public class ChessBoardPanel extends JPanel {
                     ChessSlotPanel chessSlot
                             = new ChessSlotPanel(gameBoard.getSlot(col, row),
                             col, row);
-                    slots[row - 1][col - 1] = chessSlot;
+                    slots[Board.SIZE - row][col - 1] = chessSlot;
                     this.add(chessSlot);
                 }
             }
@@ -360,18 +360,18 @@ public class ChessBoardPanel extends JPanel {
      * been selected.
      */
     public void updateSlots() {
-        for (int row = 0; row < Board.SIZE; row++) {
-            for (int col = 0; col < Board.SIZE; col++) {
-                if (gameBoard.getSlot(col + 1, row + 1)
-                        != slots[row][col].getPawnColor()) {
-                    slots[row][col].setPawnColor(gameBoard.getSlot(col + 1,
-                            row + 1));
-                    slots[row][col].repaint();
-                } else if (slots[row][col].isSelectedPawn()) {
-                    slots[row][col].setSelectedPawn(false);
-                    slots[row][col].repaint();
+        int s = Board.SIZE;
+        for (int row = 8; row > 0; row--) {
+            for (int col = 1; col <= Board.SIZE; col++) {
+                if (gameBoard.getSlot(col, row)
+                        != slots[s - row][col - 1].getPawnColor()) {
+                    slots[s - row][col - 1].setPawnColor(gameBoard.getSlot(col,
+                            row));
+                    slots[s - row][col - 1].repaint();
+                } if (slots[s - row][col - 1].isSelectedPawn()) {
+                    slots[s - row][col - 1].setSelectedPawn(false);
+                    slots[s - row][col - 1].repaint();
                 }
-
             }
         }
     }

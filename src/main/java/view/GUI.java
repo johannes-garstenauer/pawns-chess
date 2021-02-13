@@ -165,8 +165,8 @@ public class GUI extends JFrame {
     private class ControlPanel extends JPanel {
 
         /**
-         * On this stack the chessboards are stored in chronological order for the
-         * purpose of being able to 'undo' a move.
+         * On this stack the chessboards are stored in chronological order for
+         * the purpose of being able to 'undo' a move.
          */
         private final Stack<Board> undoStack = new Stack<>();
 
@@ -185,8 +185,8 @@ public class GUI extends JFrame {
 
             /*
             Create a wrapper around the control panel in order to place the
-            pawns numbers easily and neat. Assign a size to ensure that it does not
-            take up too much space.
+            pawns numbers easily and neat. Assign a size to ensure that it does
+            not take up too much space.
             */
             JPanel controlPanelWrapper = new JPanel(new BorderLayout());
             controlPanelWrapper.setPreferredSize(new Dimension(FRAME_SIZE,
@@ -248,18 +248,18 @@ public class GUI extends JFrame {
             String[] levels = {"1", "2", "3", "4"};
             JComboBox<String> levelMenu = new JComboBox<>(levels);
             levelMenu.setSelectedIndex(DEFAULT_DIFFICULTY - 1);
-            gameBoard.setLevel(Integer.parseInt
-                    ((String) Objects.requireNonNull(levelMenu.getSelectedItem())));
+            gameBoard.setLevel(Integer.parseInt((String) Objects
+                    .requireNonNull(levelMenu.getSelectedItem())));
             levelMenu.addActionListener(e -> {
-                JComboBox<String> selectedBox
-                        = (JComboBox<String>) e.getSource();
+                JComboBox selectedBox = (JComboBox) e.getSource();
                 int selectedLevel
                         = Integer.parseInt((String) Objects.requireNonNull
                         (selectedBox.getSelectedItem()));
                 DEFAULT_DIFFICULTY = selectedLevel;
                 gameBoard.setLevel(selectedLevel);
             });
-            levelMenu.setToolTipText("Set the machine opponents difficulty level.");
+            levelMenu.setToolTipText("Set the machine opponents difficulty "
+                    + "level.");
             controlPanel.add(levelMenu);
         }
 
@@ -312,7 +312,8 @@ public class GUI extends JFrame {
                 DEFAULT_HUMANCOLOR = Color.getOppositeColor(DEFAULT_HUMANCOLOR);
                 constructNewBoard();
             });
-            switchButton.setToolTipText("Start a new game with switched colours.");
+            switchButton.setToolTipText("Start a new game with switched "
+                    + "colours.");
             controlPanel.add(switchButton);
         }
 
