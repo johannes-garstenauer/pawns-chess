@@ -97,7 +97,6 @@ public class ChessBoard implements Board, Cloneable {
         }
     }
 
-
     /**
      * Determine the direction and distance of a move.
      *
@@ -151,7 +150,6 @@ public class ChessBoard implements Board, Cloneable {
             }
         }
     }
-
 
     /**
      * Determine whether a given move is legal.
@@ -245,7 +243,7 @@ public class ChessBoard implements Board, Cloneable {
      */
     @Override
     public Board move(int colFrom, int rowFrom, int colTo, int rowTo)
-            throws IllegalMoveException, IllegalArgumentException {
+            throws IllegalMoveException {
 
         if (nextPlayer != Player.HUMAN) {
             throw new IllegalMoveException("It is not the human player's "
@@ -754,7 +752,6 @@ public class ChessBoard implements Board, Cloneable {
             newBoard.constructTree(root, Player.MACHINE.getLevel());
             newBoard.assignValues(root);
 
-            //TODO wird nextPlayer schon durch possibleMoves richtig gesetzt?
             ChessBoard bestMove = root.getMaxChild().getContent();
 
             if (bestMove.hasToSuspend(Player.HUMAN)) {

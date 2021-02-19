@@ -7,12 +7,13 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.JOptionPane;
 import javax.swing.JLabel;
-import javax.swing.border.EmptyBorder;
 
+import java.awt.GridBagLayout;
+import java.awt.Toolkit;
 import java.awt.GridLayout;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,9 @@ import java.util.List;
  * logic to interact with the gameplay mechanics of the model.
  */
 public class ChessBoardPanel extends JPanel {
+
+    @Serial
+    private static final long serialVersionUID = 4076105886247287470L;
 
     /**
      * Collects all the panels contained within the chessboard. The slots are
@@ -109,7 +113,6 @@ public class ChessBoardPanel extends JPanel {
             }
             machineMoveThread = null;
         }
-
     }
 
 
@@ -123,49 +126,58 @@ public class ChessBoardPanel extends JPanel {
      *                  ChessBoardPanel}
      */
     public ChessBoardPanel(Board gameBoard, JPanel parent) {
-        this.gameBoard = gameBoard;
-        this.setLayout(new GridLayout(Board.SIZE + 2,
-                Board.SIZE + 2));
+        if (gameBoard == null) {
+            throw new IllegalArgumentException("The game model must represent"
+                    + " a legal game state.");
+        } else if (parent == null) {
+            throw new IllegalArgumentException("The parent component must not"
+                    + " be null.");
+        } else {
+            this.gameBoard = gameBoard;
+            this.setLayout(new GridLayout(Board.SIZE + 2,
+                    Board.SIZE + 2));
 
-        // Fill the chessboard grid with panels. These panels contain the
-        // functionality of the moves and take care of the graphics aspect.
-        for (int row = Board.SIZE + 1; row >= 0; row--) {
-            for (int col = 0; col <= Board.SIZE + 1; col++) {
+            // Fill the chessboard grid with panels. These panels contain the
+            // functionality of the moves and take care of the graphics aspect.
+            for (int row = Board.SIZE + 1; row >= 0; row--) {
+                for (int col = 0; col <= Board.SIZE + 1; col++) {
 
-                if (!(row > 0 && row <= Board.SIZE && col > 0
-                        && col <= Board.SIZE)) {
+                    if (!(row > 0 && row <= Board.SIZE && col > 0
+                            && col <= Board.SIZE)) {
 
-                    // If this tile is not within the bounds of the actual,
-                    // playable chessboard.
-                    if (((col == 0 && row == 0)
-                            || (col == Board.SIZE + 1 && row == 0)
-                            || (row == Board.SIZE + 1 && col == 0)
-                            || (col == Board.SIZE + 1 && row
-                            == Board.SIZE + 1))) {
+                        // If this tile is not within the bounds of the actual
+                        // playable chessboard.
+                        if (((col == 0 && row == 0)
+                                || (col == Board.SIZE + 1 && row == 0)
+                                || (row == Board.SIZE + 1 && col == 0)
+                                || (col == Board.SIZE + 1 && row
+                                == Board.SIZE + 1))) {
 
-                        // Add empty Label into corners.
-                        this.add(new JLabel());
-                    } else if (col == 0 || col == Board.SIZE + 1) {
-                        addIndex(false, col, row,
-                                parent);
-                    } else if ((row == 0 || row == Board.SIZE + 1)) {
-                        addIndex(true, col, row,
-                                parent);
+                            // Add empty Label into corners.
+                            this.add(new JLabel());
+                        } else if (col == 0 || col == Board.SIZE + 1) {
+
+                            // Add empty Label into corners.
+                            addIndex(false, col, row);
+                        } else if ((row == 0 || row == Board.SIZE + 1)) {
+
+                            // Add empty Label into corners.
+                            addIndex(true, col, row);
+                        }
+                    } else {
+                        ChessSlotPanel chessSlot
+                                = new ChessSlotPanel(gameBoard
+                                .getSlot(col, row), col, row);
+                        slots[Board.SIZE - row][col - 1] = chessSlot;
+                        this.add(chessSlot);
                     }
-                } else {
-                    ChessSlotPanel chessSlot
-                            = new ChessSlotPanel(gameBoard.getSlot(col, row),
-                            col, row);
-                    slots[Board.SIZE - row][col - 1] = chessSlot;
-                    this.add(chessSlot);
                 }
             }
         }
 
         // In order to have the chessboard initially in a proper size set the
         // boards preferred size to be a square within the frame.
-        int boardSize = (int) parent.getPreferredSize()
-                .getHeight();
+        int boardSize = (int) parent.getPreferredSize().getHeight();
         this.setPreferredSize(new Dimension(boardSize, boardSize));
     }
 
@@ -179,43 +191,27 @@ public class ChessBoardPanel extends JPanel {
      *                   added to the sides of the board.
      * @param col        The column position of the index.
      * @param row        The row position of the index.
-     * @param parent     The wrapper around the chessboard
-     *                   panel.
      */
-    private void addIndex(boolean horizontal, int col, int row,
-                          JPanel parent) {
-        assert parent != null;
+    private void addIndex(boolean horizontal, int col, int row) {
         assert col == 0 || col == Board.SIZE + 1
                 || row == 0 || row == Board.SIZE + 1;
 
-        //TODO rename
-        int w = (int) (parent.getPreferredSize().getWidth())
-                / (Board.SIZE + 2);
-
         JLabel index = new JLabel();
-
         if (horizontal) {
 
             // Add indices to top and bottom.
             index.setText(String.valueOf(col));
-
-            // Fit the index with some distance to the chessboards
-            // edge.
-            index.setBorder(new EmptyBorder(0, w / 2
-                    - index.getPreferredSize().width, 0,
-                    0));
         } else {
 
             // Add indices to sides.
             index.setText(String.valueOf(row));
-
-            // Fit the index with some distance to the chessboards
-            // side.
-            index.setBorder(new EmptyBorder(0, w / 2
-                    - index.getPreferredSize().width, 0, w / 2
-                    - index.getPreferredSize().width));
         }
-        this.add(index);
+
+        // A panel-wrapper around the index in order to have the index
+        // in a centered position.
+        JPanel indexPanel = new JPanel(new GridBagLayout());
+        indexPanel.add(index);
+        this.add(indexPanel);
     }
 
     /**
@@ -281,6 +277,7 @@ public class ChessBoardPanel extends JPanel {
 
                         // Remember the last move.
                         frame.pushOnUndoStack(gameBoard.clone());
+                        frame.enableUndoButton(true);
                         gameBoard = newBoard;
 
                         if (gameBoard.isGameOver()) {
@@ -302,8 +299,7 @@ public class ChessBoardPanel extends JPanel {
                             } else {
 
                                 // Let the machine perform its move.
-                                MachineMoveThread machineMoveThread
-                                        = new MachineMoveThread();
+                                machineMoveThread = new MachineMoveThread();
                                 machineMoveThread.start();
                             }
                         }
@@ -363,7 +359,6 @@ public class ChessBoardPanel extends JPanel {
         }
     }
 
-
     /**
      * Updates the slots about a movement of pawns and repaints them if
      * necessary (if a change was detected). Also unselect slots that have
@@ -374,7 +369,7 @@ public class ChessBoardPanel extends JPanel {
         for (int row = 8; row > 0; row--) {
             for (int col = 1; col <= Board.SIZE; col++) {
 
-                // Paint all slots with pawns.
+                // Paint all slots where a change has occurred.
                 if (gameBoard.getSlot(col, row)
                         != slots[s - row][col - 1].getPawnColor()) {
                     slots[s - row][col - 1].setPawnColor(gameBoard.getSlot(col,
@@ -398,6 +393,9 @@ public class ChessBoardPanel extends JPanel {
         if (machineMoveThread.isAlive()) {
             machineMoveThread.stopThread();
             machineMoveThread = new MachineMoveThread();
+
+            // Re-enable the humans possibility to move.
+            setEnabledOnChessBoardPanels(true);
         }
     }
 

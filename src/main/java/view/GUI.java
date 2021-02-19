@@ -14,9 +14,7 @@ import javax.swing.WindowConstants;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
-
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -25,35 +23,40 @@ import java.awt.event.WindowEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-
+import java.io.Serial;
 import java.util.Objects;
 import java.util.Stack;
 
 /**
  * Constructing an object from this class will provide you with a frame on
- * which you can play a game of pawns chess. Select a pawn -it will be
- * highlighted in blue- and move it to a legal slot. The computer will move
+ * which you can play a game of pawns chess. Select a pawn (it will be
+ * highlighted in blue) and move it to a legal slot. The computer will move
  * automatically.
  */
 public class GUI extends JFrame {
 
+    @Serial
+    private static final long serialVersionUID = 6522192500968552539L;
+
     /**
-     * This value is used to determine the rough size of the frame.
+     * This value is used to determine the size of the frame.
      */
     private final static int FRAME_SIZE = 800;
 
     /**
-     * This is the default difficulty level of the machine opponent.
+     * This is the default difficulty level of the machine opponent. Can be
+     * changed by the user by using the levels combobox.
      */
     private static int defaultDifficulty = 3;
 
     /**
-     * This is the default color of the human player.
+     * This is the default color of the human player. Can be changed by the
+     * user by pressing the switch button.
      */
     private static Color defaultHumanColor = Color.WHITE;
 
     /**
-     * This is the Board on which the current game is being played.
+     * This is the {@code Board} on which the current game is being played.
      */
     private Board gameBoard
             = new ChessBoard(defaultDifficulty, defaultHumanColor);
@@ -63,15 +66,17 @@ public class GUI extends JFrame {
      */
     private ChessBoardPanel chessBoardPanel;
 
+    /**
+     * This panel contains the control buttons.
+     */
     private final ControlPanel controlPanel;
-
 
     /**
      * The constructor for the window frame. From here all the inner
      * components are called to be constructed.
      */
     public GUI() {
-        super("Pawns Chess");
+        super("Pawns-Chess");
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setLayout(new BorderLayout());
 
@@ -86,8 +91,8 @@ public class GUI extends JFrame {
                 (int) (this.getSize().height * 0.6)));
         this.setVisible(true);
 
-        // Make sure the {@code machineMoveThread} is killed after the window
-        // was closed.
+        // Make sure the thread calculating the machine move is killed after
+        // the window was closed.
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -120,6 +125,16 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Enable or disable the undo button.
+     *
+     * @param enabled The boolean value used to set the the undo button as
+     *                dis- or enabled.
+     */
+    public void enableUndoButton(boolean enabled) {
+        controlPanel.undoButton.setEnabled(enabled);
+    }
+
+    /**
      * Ensure that the chessboard always is a perfect square within the
      * frame. Even when the frame is not.
      *
@@ -148,7 +163,7 @@ public class GUI extends JFrame {
             }
 
             /**
-             * This method is needed for the interface but not implemented.
+             * This method is required but not implemented.
              *
              * @param e The event which was called.
              */
@@ -157,7 +172,7 @@ public class GUI extends JFrame {
             }
 
             /**
-             * This method is needed for the interface but not implemented.
+             * This method is required but not implemented.
              *
              * @param e The event which was called.
              */
@@ -166,7 +181,7 @@ public class GUI extends JFrame {
             }
 
             /**
-             * This method is needed for the interface but not implemented.
+             * This method is required but not implemented.
              *
              * @param e The event which was called.
              */
@@ -183,6 +198,9 @@ public class GUI extends JFrame {
      */
     private class ControlPanel extends JPanel {
 
+        @Serial
+        private static final long serialVersionUID = -6951305848978228512L;
+
         /**
          * On this stack the chessboards are stored in chronological order for
          * the purpose of being able to 'undo' a move.
@@ -190,12 +208,21 @@ public class GUI extends JFrame {
         private final Stack<Board> undoStack = new Stack<>();
 
         /**
-         * These labels display the amount of pawns a player possesses.
+         * This label displays the amount of white pawns left on the board.
          */
         private final JLabel whitePawnsNumber
                 = new JLabel(String.valueOf(Board.SIZE));
+
+        /**
+         * This label displays the amount of black pawns left on the board.
+         */
         private final JLabel blackPawnsNumber
                 = new JLabel(String.valueOf(Board.SIZE));
+
+        /**
+         * The button used to undo a move.
+         */
+        private JButton undoButton;
 
         /**
          * Initializes the control panel and the buttons contained within it.
@@ -215,23 +242,19 @@ public class GUI extends JFrame {
             this.setLayout(new FlowLayout());
             controlPanelWrapper.add(this, BorderLayout.CENTER);
 
-            initLevelsBox(this);
-            initUndoButton(this);
-            initNewButton(this);
-            initSwitchButton(this);
-            initQuitButton(this);
+            initLevelsBox();
+            initUndoButton();
+            initNewButton();
+            initSwitchButton();
+            initQuitButton();
         }
 
         /**
          * Add the undo button in order provide the ability to undo the last
          * move.
-         *
-         * @param controlPanel The panel containing the control elements.
          */
-        private void initUndoButton(JPanel controlPanel) {
-            assert controlPanel != null;
-
-            JButton undoButton = new JButton("Undo");
+        private void initUndoButton() {
+            undoButton = new JButton("Undo");
             undoButton.setMnemonic('U');
             undoButton.addActionListener(e -> {
                 if (!undoStack.isEmpty()) {
@@ -242,28 +265,26 @@ public class GUI extends JFrame {
 
                     // Reset and update the GUI, afterwards paint.
                     gameBoard = undoStack.pop();
+                    if (undoStack.isEmpty()) {
+                        undoButton.setEnabled(false);
+                    }
                     chessBoardPanel.updateGameBoard(gameBoard);
-                    chessBoardPanel.clearMoveParams();
                     chessBoardPanel.updateSlots();
+                    chessBoardPanel.clearMoveParams();
                     updateAndPaintAmountOfPawns();
-                } else {
-                    Toolkit.getDefaultToolkit().beep();
                 }
             });
             undoButton.setToolTipText("Undo your last move.");
-            controlPanel.add(undoButton);
+            this.add(undoButton);
+            undoButton.setEnabled(false);
         }
 
         /**
          * Add the levels combobox. Levels are updated immediately, but not
          * while the machine is moving.
-         *
-         * @param controlPanel The panel containing the control elements.
          */
-        private void initLevelsBox(JPanel controlPanel) {
-            assert controlPanel != null;
-
-            controlPanel.add(new JLabel("Levels:"));
+        private void initLevelsBox() {
+            this.add(new JLabel("Level:"));
             String[] levels = {"1", "2", "3", "4"};
             JComboBox<String> levelMenu = new JComboBox<>(levels);
             levelMenu.setSelectedIndex(defaultDifficulty - 1);
@@ -279,32 +300,24 @@ public class GUI extends JFrame {
             });
             levelMenu.setToolTipText("Set the machine opponents difficulty "
                     + "level.");
-            controlPanel.add(levelMenu);
+            this.add(levelMenu);
         }
 
         /**
          * Add a button to allow the creation of a new game.
-         *
-         * @param controlPanel The panel containing the control elements.
          */
-        private void initNewButton(JPanel controlPanel) {
-            assert controlPanel != null;
-
+        private void initNewButton() {
             JButton newButton = new JButton("New");
             newButton.setMnemonic('N');
             newButton.addActionListener(e -> constructNewBoard());
             newButton.setToolTipText("Create a new game.");
-            controlPanel.add(newButton);
+            this.add(newButton);
         }
 
         /**
          * Add a button for a clean quit to the program.
-         *
-         * @param controlPanel The panel containing the control elements.
          */
-        private void initQuitButton(JPanel controlPanel) {
-            assert controlPanel != null;
-
+        private void initQuitButton() {
             JButton quitButton = new JButton("Quit");
             quitButton.setMnemonic('Q');
             quitButton.addActionListener(e -> {
@@ -314,18 +327,14 @@ public class GUI extends JFrame {
             });
             quitButton.setToolTipText("Quit this program and close the "
                     + "window.");
-            controlPanel.add(quitButton);
+            this.add(quitButton);
         }
 
         /**
          * Add a button to allow the creation of a new game with switched
          * colors.
-         *
-         * @param controlPanel The panel containing the control elements.
          */
-        private void initSwitchButton(JPanel controlPanel) {
-            assert controlPanel != null;
-
+        private void initSwitchButton() {
             JButton switchButton = new JButton("Switch");
             switchButton.setMnemonic('S');
             switchButton.addActionListener(e -> {
@@ -334,7 +343,7 @@ public class GUI extends JFrame {
             });
             switchButton.setToolTipText("Start a new game with switched "
                     + "colours.");
-            controlPanel.add(switchButton);
+            this.add(switchButton);
         }
 
         /**
@@ -385,6 +394,7 @@ public class GUI extends JFrame {
             gameBoard = new ChessBoard(defaultDifficulty, defaultHumanColor);
             chessBoardPanel.updateGameBoard(gameBoard);
             chessBoardPanel.updateSlots();
+            undoButton.setEnabled(false);
 
             // If the machine can start, make a move.
             if (gameBoard.getOpeningPlayer() == Player.MACHINE) {
@@ -447,7 +457,12 @@ public class GUI extends JFrame {
      * @param gameBoard The current game-board.
      */
     public void updateGameBoard(Board gameBoard) {
-        this.gameBoard = gameBoard;
+        if (gameBoard == null) {
+            throw new IllegalArgumentException("The board must represent a "
+                    + "legal game state.");
+        } else {
+            this.gameBoard = gameBoard;
+        }
     }
 
     /**

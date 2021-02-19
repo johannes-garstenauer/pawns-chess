@@ -2,7 +2,6 @@ package view;
 
 import model.chessboard.Board;
 
-
 import javax.swing.border.BevelBorder;
 import javax.swing.JPanel;
 import javax.swing.JButton;
@@ -10,12 +9,18 @@ import javax.swing.JButton;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.RenderingHints;
+
+import java.io.Serial;
 
 /**
  * This panel represents a tile of a chessboard. It has a button hidden
  * underneath it, which will trigger a determination whether a move can be made.
  */
 public class ChessSlotPanel extends JPanel {
+
+    @Serial
+    private static final long serialVersionUID = -3975103018081312405L;
 
     /**
      * The color of the pawn on this slot. {@code Color.NONE} if there is no
@@ -106,6 +111,10 @@ public class ChessSlotPanel extends JPanel {
         }
 
         Graphics2D g2 = (Graphics2D) g;
+
+        // Beautify pawns.
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Determine the center of the slot for easy calculation of positions.
         int centerX = getWidth() / 2;
